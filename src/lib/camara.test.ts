@@ -1,5 +1,33 @@
 import { describe, it, expect } from "vitest";
-import { partyPeriods, totalByType } from "./camara";
+import { assertCamaraUrl, fetchCamaraJson, partyPeriods, totalByType } from "./camara";
+
+describe("integração Câmara", () => {
+  it("aceita somente endpoints HTTPS oficiais da API", () => {
+    expect(assertCamaraUrl("https://dadosabertos.camara.leg.br/api/v2/deputados").hostname).toBe(
+      "dadosabertos.camara.leg.br",
+    );
+    expect(() => assertCamaraUrl("https://example.com/api/v2/deputados")).toThrow(
+      "Destino de integração não autorizado",
+    );
+    expect(() => assertCamaraUrl("http://dadosabertos.camara.leg.br/api/v2/deputados")).toThrow(
+      "Destino de integração não autorizado",
+    );
+  });
+
+  it("rejeita envelopes inválidos antes de repassar dados à interface", async () => {
+    const fetcher: typeof fetch = async () =>
+      new Response(JSON.stringify({ resultado: [] }), {
+        status: 200,
+        headers: { "content-type": "application/json" },
+      });
+    await expect(
+      fetchCamaraJson("https://dadosabertos.camara.leg.br/api/v2/deputados", {
+        fetcher,
+        retries: 0,
+      }),
+    ).rejects.toThrow();
+  });
+});
 
 describe("partyPeriods", () => {
   it("records each party change once, in date order", () => {
