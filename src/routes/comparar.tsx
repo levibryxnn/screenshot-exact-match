@@ -2,12 +2,12 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useSuspenseQuery } from "@tanstack/react-query";
 import { brl, deputadoQuery, deputadosQuery, fmtDate } from "@/lib/camara";
 
-type S = { a?: number; b?: number };
+type S = { a?: number | undefined; b?: number | undefined };
 
 export const Route = createFileRoute("/comparar")({
   validateSearch: (s: Record<string, unknown>): S => ({
-    a: Number(s.a) > 0 ? Number(s.a) : undefined,
-    b: Number(s.b) > 0 ? Number(s.b) : undefined,
+    a: Number(s["a"]) > 0 ? Number(s["a"]) : undefined,
+    b: Number(s["b"]) > 0 ? Number(s["b"]) : undefined,
   }),
   head: () => ({
     meta: [
