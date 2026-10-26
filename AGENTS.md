@@ -8,3 +8,5 @@
 > Commits you push to the connected branch sync back to Lovable and show up in
 > the editor, so keep the branch in a working state.
 <!-- LOVABLE:END -->
+
+- Official public data is fetched through server functions in src/lib/ (one module per source, e.g. camara.ts) with retry and React Query caching; why: keeps provenance, retries and source-specific shapes in one place per source.
