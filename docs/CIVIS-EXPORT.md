@@ -22,7 +22,7 @@ O preview consulta a Câmara ao vivo. O snapshot em `data/` serve para auditoria
 
 Executados antes da publicação:
 
-- `npm test`: 3 testes passaram.
+- `npm test`: 5 testes passaram.
 - `npm run build`: build cliente, SSR e Nitro passaram.
 - `npm run lint`: passou com 6 avisos de Fast Refresh em componentes UI gerados pelo template; não há erros de lint.
 
