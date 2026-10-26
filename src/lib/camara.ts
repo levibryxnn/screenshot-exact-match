@@ -1,303 +1,114 @@
-import { createServerFn } from "@tanstack/react-start";
-import { queryOptions } from "@tanstack/react-query";
-import { z } from "zod";
+import { z } from 'zod';
+import * as http from 'node:http';
+import type { Citation, Politician, Proposal, TimelineEvent } from './types';
+import { beginImport, finishImport, savePoliticians } from './db';
 
-import { snapshotDate, snapshotDeputado, snapshotDeputados } from "./snapshot";
+// Respect the platform's injected HTTPS proxy; never bypass its access policy.
+const httpWithProxy = http as unknown as {setGlobalProxyFromEnv?: (env:NodeJS.ProcessEnv)=>()=>void};
+if(process.env.HTTPS_PROXY || process.env.https_proxy || process.env.HTTP_PROXY || process.env.http_proxy) httpWithProxy.setGlobalProxyFromEnv?.(process.env);
 
-const BASE = "https://dadosabertos.camara.leg.br/api/v2";
-const DEFAULT_TIMEOUT_MS = 5_000;
-const MAX_RESPONSE_BYTES = 5_000_000;
+const API='https://dadosabertos.camara.leg.br/api/v2';
+const linkSchema=z.object({rel:z.string(),href:z.string().url()});
+const envelopeSchema=z.object({dados:z.unknown(),links:z.array(linkSchema).optional()});
+const deputySchema=z.object({id:z.number().int().positive(),nome:z.string().min(1),siglaPartido:z.string().min(1),siglaUf:z.string().regex(/^[A-Z]{2}$/),idLegislatura:z.number().int().positive().optional()});
+const deputyDetailSchema=z.object({id:z.number().int().positive(),nomeCivil:z.string().nullable().optional(),escolaridade:z.string().nullable().optional(),ultimoStatus:z.object({nome:z.string(),siglaPartido:z.string(),siglaUf:z.string(),idLegislatura:z.number().int().positive(),situacao:z.string().nullable().optional(),data:z.string().optional()})});
+const proposalRawSchema=z.object({id:z.number().int().positive(),siglaTipo:z.string(),numero:z.number(),ano:z.number(),ementa:z.string().nullable().optional()});
+const historyRawSchema=z.object({dataHora:z.string(),situacao:z.string().nullable().optional(),nome:z.string().nullable().optional(),siglaPartido:z.string().nullable().optional(),siglaUf:z.string().nullable().optional(),descricaoStatus:z.string().nullable().optional()});
+export interface CamaraFetchOptions { fetcher?:typeof fetch; timeoutMs?:number; retries?:number }
 
-const deputySummarySchema = z.object({
-  id: z.number().int().positive(),
-  nome: z.string().min(1),
-  siglaPartido: z.string().min(1),
-  siglaUf: z.string().regex(/^[A-Z]{2}$/),
-  urlFoto: z.string().url().nullable().optional(),
-  email: z.string().email().nullable().optional(),
-});
-
-const envelopeSchema = z
-  .object({
-    dados: z.unknown(),
-    links: z.array(z.object({ rel: z.string(), href: z.string().url() })).optional(),
-  })
-  .refine((value) => Object.prototype.hasOwnProperty.call(value, "dados"), {
-    message: "Resposta da Câmara sem o campo dados.",
-  });
-
-export interface CamaraFetchOptions {
-  fetcher?: typeof fetch;
-  timeoutMs?: number;
-  retries?: number;
-}
-
-export function assertCamaraUrl(input: string): URL {
-  const url = new URL(input);
-  if (
-    url.protocol !== "https:" ||
-    url.hostname !== "dadosabertos.camara.leg.br" ||
-    url.port ||
-    url.username ||
-    url.password ||
-    !url.pathname.startsWith("/api/v2/")
-  ) {
-    throw new Error("Destino de integração não autorizado.");
-  }
+export function assertCamaraUrl(input:string):URL {
+  const url=new URL(input);
+  if(url.protocol!=='https:' || url.hostname!=='dadosabertos.camara.leg.br' || url.port || url.username || url.password || !url.pathname.startsWith('/api/v2/')) throw new Error('Destino de integração não autorizado.');
   return url;
 }
-
-async function requestWithTimeout(
-  fetcher: typeof fetch,
-  url: URL,
-  timeoutMs: number,
-): Promise<Response> {
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), timeoutMs);
-  try {
-    return await fetcher(url, {
-      headers: { Accept: "application/json", "User-Agent": "Plenario/0.1 (+official-public-data)" },
-      redirect: "error",
-      signal: controller.signal,
-    });
-  } finally {
-    clearTimeout(timer);
-  }
-}
-
-export async function fetchCamaraJson(
-  input: string,
-  options: CamaraFetchOptions = {},
-): Promise<{ dados?: unknown; links?: { rel: string; href: string }[] | undefined }> {
-  const url = assertCamaraUrl(input);
-  const retries = options.retries ?? 1;
-  let lastErr: unknown;
-  for (let i = 0; i <= retries; i++) {
+export async function fetchCamaraJson(url:string, options:CamaraFetchOptions={}) {
+  assertCamaraUrl(url);
+  const retries=options.retries??2;
+  let last:unknown;
+  for(let attempt=0;attempt<=retries;attempt++) {
     try {
-      const res = await requestWithTimeout(
-        options.fetcher ?? fetch,
-        url,
-        options.timeoutMs ?? DEFAULT_TIMEOUT_MS,
-      );
-      if (!res.ok) {
-        const error = new Error(`Câmara API respondeu HTTP ${res.status}.`);
-        if (res.status !== 429 && res.status < 500) {
-          throw Object.assign(error, { permanent: true });
-        }
+      const response=await (options.fetcher??fetch)(url,{headers:{Accept:'application/json','User-Agent':'CivisBR/0.1 (+official-public-data)'},redirect:'error',signal:AbortSignal.timeout(options.timeoutMs??15000)});
+      if(!response.ok) {
+        const error=new Error(`Fonte Câmara respondeu HTTP ${response.status}.`);
+        if(response.status!==429 && response.status<500) throw Object.assign(error,{permanent:true});
         throw error;
       }
-      const contentLength = Number(res.headers.get("content-length") ?? 0);
-      if (contentLength > MAX_RESPONSE_BYTES) {
-        throw Object.assign(new Error("Resposta da fonte excedeu o limite de segurança."), {
-          permanent: true,
-        });
-      }
-      const body = await res.text();
-      if (body.length > MAX_RESPONSE_BYTES) {
-        throw Object.assign(new Error("Resposta da fonte excedeu o limite de segurança."), {
-          permanent: true,
-        });
-      }
+      const contentLength=Number(response.headers.get('content-length')||0);
+      if(contentLength>5_000_000) throw Object.assign(new Error('Resposta da fonte excedeu o limite de segurança.'),{permanent:true});
+      const body=await response.text();
+      if(body.length>5_000_000) throw Object.assign(new Error('Resposta da fonte excedeu o limite de segurança.'),{permanent:true});
       return envelopeSchema.parse(JSON.parse(body));
-    } catch (e) {
-      lastErr = e;
-      if ((e as { permanent?: boolean }).permanent || i === retries) throw e;
-      await new Promise((resolve) => setTimeout(resolve, Math.min(3_000, 300 * 2 ** i)));
+    } catch(error) {
+      last=error;
+      if((error as {permanent?:boolean}).permanent || attempt===retries) throw error;
+      await new Promise(resolve=>setTimeout(resolve,Math.min(3000,300*2**attempt)));
     }
   }
-  throw lastErr;
+  throw last;
+}
+function citation(id:string,title:string,url:string,collectedAt:string,eventDate:string|null=null):Citation {
+  return {id,publisher:'Câmara dos Deputados — Dados Abertos',title,url,documentId:id,eventDate,publishedAt:null,collectedAt,verifiedAt:collectedAt,excerpt:null,kind:'primary',verification:'official-import'};
 }
 
-async function get<T>(path: string, options: CamaraFetchOptions = {}): Promise<T> {
-  const response = await fetchCamaraJson(`${BASE}${path}`, options);
-  return response.dados as T;
-}
-
-export type DeputadoResumo = {
-  id: number;
-  nome: string;
-  siglaPartido: string;
-  siglaUf: string;
-  urlFoto: string;
-  email: string | null;
-};
-
-export type DeputadoDetalhe = {
-  id: number;
-  nomeCivil: string;
-  sexo: string;
-  dataNascimento: string | null;
-  ufNascimento: string | null;
-  municipioNascimento: string | null;
-  escolaridade: string | null;
-  urlWebsite: string | null;
-  redeSocial: string[];
-  ultimoStatus: {
-    nome: string;
-    nomeEleitoral: string;
-    siglaPartido: string;
-    siglaUf: string;
-    urlFoto: string;
-    idLegislatura: number;
-    data: string;
-    situacao: string;
-    condicaoEleitoral: string;
-    email: string | null;
-    gabinete: { sala: string | null; predio: string | null; telefone: string | null };
-  };
-};
-
-export type Despesa = {
-  ano: number;
-  mes: number;
-  tipoDespesa: string;
-  valorLiquido: number;
-  nomeFornecedor: string;
-  urlDocumento: string | null;
-  dataDocumento: string | null;
-};
-
-export type Proposicao = {
-  id: number;
-  siglaTipo: string;
-  numero: number;
-  ano: number;
-  ementa: string;
-};
-export type Orgao = {
-  siglaOrgao: string;
-  nomeOrgao: string;
-  titulo: string;
-  dataInicio: string;
-  dataFim: string | null;
-};
-export type Historico = {
-  dataHora: string;
-  siglaPartido: string;
-  siglaUf: string;
-  situacao: string | null;
-  condicaoEleitoral: string | null;
-  descricaoStatus: string | null;
-  idLegislatura: number;
-};
-export type Ocupacao = {
-  titulo: string | null;
-  entidade: string | null;
-  anoInicio: number | null;
-  anoFim: number | null;
-};
-
-let cachedDeputados: { dados: DeputadoResumo[]; coletadoEm: string } | null = null;
-
-type DeputadosResponse = {
-  dados: DeputadoResumo[];
-  coletadoEm: string;
-  stale?: boolean;
-};
-
-export const listDeputados = createServerFn({ method: "GET" }).handler(
-  async (): Promise<DeputadosResponse> => {
-    try {
-      const raw = await get<unknown>("/deputados?ordem=ASC&ordenarPor=nome&itens=1000");
-      const dados = z
-        .array(deputySummarySchema)
-        .parse(raw)
-        .map((d) => ({ ...d, urlFoto: d.urlFoto ?? "", email: d.email ?? null }));
-      const fresh = { dados, coletadoEm: new Date().toISOString() };
-      cachedDeputados = fresh;
-      return fresh;
-    } catch (error) {
-      if (cachedDeputados) {
-        console.warn("Câmara indisponível; usando a última resposta válida em memória.", error);
-        return { ...cachedDeputados, stale: true };
-      }
-      const fallback = snapshotDeputados();
-      if (fallback.length > 0) {
-        console.warn("Câmara indisponível; usando o snapshot oficial exportado.", error);
-        return { dados: fallback, coletadoEm: snapshotDate, stale: true };
-      }
-      throw error;
-    }
-  },
-);
-
-export const getDeputado = createServerFn({ method: "GET" })
-  .inputValidator((id: number) => {
-    if (!Number.isInteger(id) || id <= 0) throw new Error("ID inválido");
-    return id;
-  })
-  .handler(async ({ data: id }) => {
-    try {
-      const ano = new Date().getFullYear();
-      const [detalhe, historico, orgaos, ocupacoes, proposicoes, despesasAno, despesasAnt] =
-        await Promise.all([
-          get<DeputadoDetalhe>(`/deputados/${id}`),
-          get<Historico[]>(`/deputados/${id}/historico`).catch(() => []),
-          get<Orgao[]>(`/deputados/${id}/orgaos?itens=100&ordem=DESC&ordenarPor=dataInicio`).catch(
-            () => [],
-          ),
-          get<Ocupacao[]>(`/deputados/${id}/ocupacoes`).catch(() => []),
-          get<Proposicao[]>(
-            `/proposicoes?idDeputadoAutor=${id}&itens=30&ordem=DESC&ordenarPor=id`,
-          ).catch(() => []),
-          get<Despesa[]>(`/deputados/${id}/despesas?ano=${ano}&itens=100`).catch(() => []),
-          get<Despesa[]>(`/deputados/${id}/despesas?ano=${ano - 1}&itens=100`).catch(() => []),
-        ]);
+export async function collectCamara(limit=24, options:CamaraFetchOptions={}):Promise<Politician[]> {
+  if(!Number.isInteger(limit)||limit<1||limit>100) throw new Error('Limite deve ser um inteiro entre 1 e 100.');
+  const collectedAt=new Date().toISOString();
+  const deputies:z.infer<typeof deputySchema>[]=[];
+  let page=1;
+  while(deputies.length<limit && page<=10) {
+    const url=`${API}/deputados?ordem=ASC&ordenarPor=nome&itens=${Math.min(100,limit)}&pagina=${page}`;
+    const response=await fetchCamaraJson(url,options);
+    const items=z.array(deputySchema).parse(response.dados);
+    deputies.push(...items.slice(0,limit-deputies.length));
+    if(!items.length || !response.links?.some(link=>link.rel==='next')) break;
+    page++;
+  }
+  if(!deputies.length) throw new Error('Fonte retornou zero deputados; os dados anteriores foram preservados.');
+  if(new Set(deputies.map(row=>row.id)).size!==deputies.length) throw new Error('IDs duplicados na paginação da fonte.');
+  const records:Politician[]=[];
+  // Four requests in flight at most; errors propagate before any database write.
+  for(let i=0;i<deputies.length;i+=4) {
+    const batch=await Promise.all(deputies.slice(i,i+4).map(async deputy=>{
+      const detailUrl=`${API}/deputados/${deputy.id}`;
+      const detail=deputyDetailSchema.parse((await fetchCamaraJson(detailUrl,options)).dados);
+      if(detail.id!==deputy.id) throw new Error('ID divergente entre lista e detalhe da fonte.');
+      const source=citation(`camara-deputado-${deputy.id}`,'Identificação e situação parlamentar informadas pela Câmara',detailUrl,collectedAt);
+      const historyUrl=`${API}/deputados/${deputy.id}/historico`;
+      const history=z.array(historyRawSchema).parse((await fetchCamaraJson(historyUrl,options)).dados);
+      const timeline:TimelineEvent[]=history.map((event,index)=>({
+        id:`camara:${deputy.id}:history:${index}`,date:event.dataHora,title:event.situacao||event.descricaoStatus||'Atualização cadastral',
+        description:[event.descricaoStatus,event.siglaPartido,event.siglaUf].filter(Boolean).join(' · ')||event.situacao||'Atualização cadastral registrada pela Câmara.',
+        source:citation(`camara-history-${deputy.id}-${index}`,'Histórico de situações parlamentares — não representa todo o histórico eleitoral',historyUrl,collectedAt,event.dataHora),
+      })).sort((a,b)=>a.date.localeCompare(b.date));
+      const proposalsUrl=`${API}/proposicoes?idDeputadoAutor=${deputy.id}&itens=5&ordem=DESC&ordenarPor=id`;
+      const proposalResponse=await fetchCamaraJson(proposalsUrl,options);
+      const proposals:Proposal[]=z.array(proposalRawSchema).parse(proposalResponse.dados).map(item=>({
+        id:`camara-proposicao:${item.id}`,code:`${item.siglaTipo} ${item.numero}/${item.ano}`,title:item.ementa?.trim()||'Ementa não informada pela fonte',
+        date:null,status:'Proposição registrada — tramitação não importada',
+        source:citation(`camara-proposicao-${item.id}`,'Proposição listada por vínculo de autoria — autoria não implica implementação',`${API}/proposicoes/${item.id}`,collectedAt),
+      }));
+      const latest=detail.ultimoStatus;
       return {
-        detalhe,
-        historico,
-        orgaos,
-        ocupacoes,
-        proposicoes,
-        despesas: [...despesasAno, ...despesasAnt],
-        anosDespesa: [ano, ano - 1],
-        coletadoEm: new Date().toISOString(),
-        stale: false,
-      };
-    } catch (error) {
-      const fallback = snapshotDeputado(id);
-      if (fallback) {
-        console.warn(`Câmara indisponível; usando snapshot oficial para o deputado ${id}.`, error);
-        return { ...fallback, stale: true };
-      }
-      throw error;
-    }
-  });
-
-export const deputadosQuery = () =>
-  queryOptions({
-    queryKey: ["deputados"],
-    queryFn: () => listDeputados(),
-    staleTime: 1000 * 60 * 30,
-  });
-
-export const deputadoQuery = (id: number) =>
-  queryOptions({
-    queryKey: ["deputado", id],
-    queryFn: () => getDeputado({ data: id }),
-    staleTime: 1000 * 60 * 30,
-  });
-
-/** Collapse consecutive history rows into party-affiliation periods. */
-export function partyPeriods(h: Historico[]) {
-  const sorted = [...h].sort((a, b) => a.dataHora.localeCompare(b.dataHora));
-  const out: { partido: string; inicio: string }[] = [];
-  for (const r of sorted) {
-    if (!r.siglaPartido) continue;
-    if (out.at(-1)?.partido !== r.siglaPartido)
-      out.push({ partido: r.siglaPartido, inicio: r.dataHora });
+        id:`camara:${deputy.id}`,officialId:deputy.id,name:latest.nome,fullName:detail.nomeCivil??null,
+        party:latest.siglaPartido,uf:latest.siglaUf,role:'Deputado(a) federal',municipality:null,status:latest.situacao||'Situação não informada pela fonte',
+        legislature:latest.idLegislatura,photoUrl:null,referenceDate:collectedAt.slice(0,10),collectedAt,coverage:'live' as const,
+        education:detail.escolaridade??null,source,timeline,proposals,legalRecords:[],
+      } satisfies Politician;
+    }));
+    records.push(...batch);
   }
-  return out;
+  return records;
 }
-
-export function totalByType(d: Despesa[]) {
-  const m = new Map<string, number>();
-  for (const x of d) m.set(x.tipoDespesa, (m.get(x.tipoDespesa) ?? 0) + x.valorLiquido);
-  return [...m.entries()]
-    .map(([tipo, valor]) => ({ tipo, valor }))
-    .sort((a, b) => b.valor - a.valor);
+export async function importCamara(limit=24, options:CamaraFetchOptions={}) {
+  const runId=beginImport(`${API}/deputados — primeiros ${limit} nomes em ordem alfabética`);
+  try {
+    const records=await collectCamara(limit,options);
+    const count=savePoliticians(records,{replaceActive:true});
+    finishImport(runId,'success',count,'Identificação, histórico parlamentar e até 5 proposições por deputado importados. Não é cobertura de todo o eleitorado nem de toda a produção legislativa.');
+    return {runId,count};
+  } catch(error) {
+    const message=error instanceof Error ? error.message : 'Falha não identificada na importação.';
+    finishImport(runId,'failed',0,`${message} Cache anterior preservado.`);
+    throw new Error(`Importação não concluída: ${message}`,{cause:error});
+  }
 }
-
-export const brl = (n: number) => n.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
-export const fmtDate = (s?: string | null) =>
-  s ? new Date(s).toLocaleDateString("pt-BR", { timeZone: "UTC" }) : "—";

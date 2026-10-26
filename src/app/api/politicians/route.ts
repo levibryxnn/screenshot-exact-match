@@ -1,0 +1,3 @@
+import {NextRequest,NextResponse} from 'next/server';
+import {listPoliticians} from '@/lib/db';
+export async function GET(req:NextRequest){const s=req.nextUrl.searchParams;const q=s.get('q')??'';if(q.length>120)return NextResponse.json({error:'Busca deve ter até 120 caracteres.'},{status:400});const page=Number(s.get('page')??1);const pageSize=Number(s.get('pageSize')??24);if(!Number.isInteger(page)||page<1||page>10000||!Number.isInteger(pageSize)||pageSize<1||pageSize>100)return NextResponse.json({error:'Paginação inválida.'},{status:400});return NextResponse.json(listPoliticians({q,party:s.get('party')??undefined,uf:s.get('uf')??undefined,role:s.get('role')??undefined,status:s.get('status')??undefined,page,pageSize}),{headers:{'Cache-Control':'public, max-age=30'}})}

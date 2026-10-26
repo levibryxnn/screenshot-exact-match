@@ -1,0 +1,3 @@
+import {CorrectionForm} from '@/components/CorrectionForm';
+export const metadata={title:'Solicitar correção'};
+export default async function Corrections({searchParams}:{searchParams:Promise<{politico?:string}>}){const {politico}=await searchParams;return <main id="conteudo" className="page"><p className="eyebrow">Direito de correção e contestação</p><h1>A informação pode melhorar.</h1><p>Apresente uma divergência e um documento verificável. O pedido fica armazenado para revisão humana; não remove nem altera fatos automaticamente. Não há equipe com prazo de atendimento contratado neste MVP.</p><CorrectionForm politicianId={politico??''}/></main>}
