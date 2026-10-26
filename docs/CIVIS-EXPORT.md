@@ -24,6 +24,6 @@ Executados antes da publicação:
 
 - `npm test`: 3 testes passaram.
 - `npm run build`: build cliente, SSR e Nitro passaram.
-- `npm run lint`: o projeto de origem já continha 106 erros de formatação Prettier e 6 avisos de Fast Refresh; a exportação não reformatou a base inteira para preservar o histórico do Lovable.
+- `npm run lint`: passou com 6 avisos de Fast Refresh em componentes UI gerados pelo template; não há erros de lint.
 
 O commit foi feito na branch `main`, que é a branch conectada ao projeto Lovable. Não houve force push, rebase ou alteração de histórico publicado.

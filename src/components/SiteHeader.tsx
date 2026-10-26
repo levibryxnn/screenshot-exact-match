@@ -18,9 +18,20 @@ export function SiteHeader() {
           PLENÁRIO<span className="text-signal">_</span>
         </Link>
         <nav className="ml-auto flex items-center gap-1">
-          <Link to="/" className={nav} activeProps={{ className: "text-foreground" }} activeOptions={{ exact: true }}>Seleção</Link>
-          <Link to="/comparar" className={nav} activeProps={{ className: "text-foreground" }}>Comparar</Link>
-          <Link to="/metodologia" className={nav} activeProps={{ className: "text-foreground" }}>Metodologia</Link>
+          <Link
+            to="/"
+            className={nav}
+            activeProps={{ className: "text-foreground" }}
+            activeOptions={{ exact: true }}
+          >
+            Seleção
+          </Link>
+          <Link to="/comparar" className={nav} activeProps={{ className: "text-foreground" }}>
+            Comparar
+          </Link>
+          <Link to="/metodologia" className={nav} activeProps={{ className: "text-foreground" }}>
+            Metodologia
+          </Link>
           <button
             onClick={() => {
               const v = !reduce;

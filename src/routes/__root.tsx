@@ -80,7 +80,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { title: "Plenário — Transparência Política" },
-      { name: "description", content: "Conheça e compare políticos brasileiros com dados públicos oficiais." },
+      {
+        name: "description",
+        content: "Conheça e compare políticos brasileiros com dados públicos oficiais.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
@@ -124,7 +127,9 @@ function RootComponent() {
       <Outlet />
       <footer className="border-t border-border px-6 py-8 text-xs text-muted-foreground">
         Dados: API de Dados Abertos da Câmara dos Deputados. Este site não recomenda votos.{" "}
-        <Link to="/metodologia" className="underline">Metodologia</Link>
+        <Link to="/metodologia" className="underline">
+          Metodologia
+        </Link>
       </footer>
     </QueryClientProvider>
   );
