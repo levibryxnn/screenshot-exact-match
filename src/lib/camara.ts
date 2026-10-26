@@ -11,7 +11,7 @@ const API='https://dadosabertos.camara.leg.br/api/v2';
 const linkSchema=z.object({rel:z.string(),href:z.string().url()});
 const envelopeSchema=z.object({dados:z.unknown(),links:z.array(linkSchema).optional()});
 const deputySchema=z.object({id:z.number().int().positive(),nome:z.string().min(1),siglaPartido:z.string().min(1),siglaUf:z.string().regex(/^[A-Z]{2}$/),idLegislatura:z.number().int().positive().optional()});
-const deputyDetailSchema=z.object({id:z.number().int().positive(),nomeCivil:z.string().nullable().optional(),escolaridade:z.string().nullable().optional(),ultimoStatus:z.object({nome:z.string(),siglaPartido:z.string(),siglaUf:z.string(),idLegislatura:z.number().int().positive(),situacao:z.string().nullable().optional(),data:z.string().optional()})});
+const deputyDetailSchema=z.object({id:z.number().int().positive(),nomeCivil:z.string().nullable().optional(),escolaridade:z.string().nullable().optional(),ultimoStatus:z.object({nome:z.string(),siglaPartido:z.string(),siglaUf:z.string(),idLegislatura:z.number().int().positive(),situacao:z.string().nullable().optional(),data:z.string().optional(),urlFoto:z.string().url().nullable().optional()})});
 const proposalRawSchema=z.object({id:z.number().int().positive(),siglaTipo:z.string(),numero:z.number(),ano:z.number(),ementa:z.string().nullable().optional()});
 const historyRawSchema=z.object({dataHora:z.string(),situacao:z.string().nullable().optional(),nome:z.string().nullable().optional(),siglaPartido:z.string().nullable().optional(),siglaUf:z.string().nullable().optional(),descricaoStatus:z.string().nullable().optional()});
 export interface CamaraFetchOptions { fetcher?:typeof fetch; timeoutMs?:number; retries?:number }
@@ -91,7 +91,7 @@ export async function collectCamara(limit=24, options:CamaraFetchOptions={}):Pro
       return {
         id:`camara:${deputy.id}`,officialId:deputy.id,name:latest.nome,fullName:detail.nomeCivil??null,
         party:latest.siglaPartido,uf:latest.siglaUf,role:'Deputado(a) federal',municipality:null,status:latest.situacao||'Situação não informada pela fonte',
-        legislature:latest.idLegislatura,photoUrl:null,referenceDate:collectedAt.slice(0,10),collectedAt,coverage:'live' as const,
+        legislature:latest.idLegislatura,photoUrl:latest.urlFoto??null,referenceDate:collectedAt.slice(0,10),collectedAt,coverage:'live' as const,
         education:detail.escolaridade??null,source,timeline,proposals,legalRecords:[],
       } satisfies Politician;
     }));
@@ -104,7 +104,7 @@ export async function importCamara(limit=24, options:CamaraFetchOptions={}) {
   try {
     const records=await collectCamara(limit,options);
     const count=savePoliticians(records,{replaceActive:true});
-    finishImport(runId,'success',count,'Identificação, histórico parlamentar e até 5 proposições por deputado importados. Não é cobertura de todo o eleitorado nem de toda a produção legislativa.');
+    finishImport(runId,'success',count,'Identificação, retratos oficiais quando fornecidos, histórico parlamentar e até 5 proposições por deputado importados. Não é cobertura de todo o eleitorado nem de toda a produção legislativa.');
     return {runId,count};
   } catch(error) {
     const message=error instanceof Error ? error.message : 'Falha não identificada na importação.';

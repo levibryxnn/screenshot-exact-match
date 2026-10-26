@@ -21,6 +21,15 @@ export function isOfficialSource(value: string): boolean {
   } catch { return false; }
 }
 
+export function isOfficialCamaraPhotoUrl(value: string, officialId: number): boolean {
+  try {
+    const url = new URL(value);
+    return url.protocol === 'https:' && !url.username && !url.password && !url.search && !url.hash
+      && url.hostname === 'www.camara.leg.br'
+      && url.pathname === `/internet/deputado/bandep/${officialId}.jpg`;
+  } catch { return false; }
+}
+
 export const citationSchema = z.object({
   id: z.string().min(1).max(200), publisher: z.string().min(1).max(300), title: z.string().min(1).max(1000),
   url: httpsUrl, documentId: z.string().max(1000).nullable(), eventDate: date.nullable(), publishedAt: date.nullable(),
@@ -86,7 +95,8 @@ export const politicianSchema = z.object({
   education:z.string().nullable(), source:citationSchema, timeline:z.array(timelineSchema), proposals:z.array(proposalSchema), legalRecords:z.array(legalRecordSchema),
 }).superRefine((value, ctx) => {
   if (value.id !== `camara:${value.officialId}`) ctx.addIssue({code:'custom', message:'Identificador interno deve corresponder ao identificador oficial.'});
-  if (value.photoUrl) ctx.addIssue({code:'custom', message:'Fotos exigem licença comprovada e ainda não são publicadas neste MVP.'});
+  if (value.photoUrl && !isOfficialCamaraPhotoUrl(value.photoUrl, value.officialId)) ctx.addIssue({code:'custom', message:'Foto deve ser o retrato oficial HTTPS correspondente ao ID da Câmara.'});
+  if (value.photoUrl && value.coverage === 'historical') ctx.addIssue({code:'custom', message:'Retrato atual não pode ser associado automaticamente a registro histórico.'});
 });
 
 export const correctionSchema = z.object({

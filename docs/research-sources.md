@@ -29,7 +29,7 @@ Foi confirmado o checkout oficial `camaradosdeputados/dados-abertos`, commit `66
 
 ### Fotografias e direitos
 
-A API fornece URLs oficiais `https://www.camara.leg.br/internet/deputado/bandep/<id>.jpg`, mas **URL pública não comprova autorização irrestrita de reutilização nem crédito do fotógrafo**. A primeira entrega conserva `photoUrl=null`, com representação gráfica sem simular fotografia real. A incorporação de retratos depende de verificação dos termos aplicáveis a cada imagem e do crédito exigido. O mesmo cuidado vale para fotos do Senado. Não se assume que a licença de dados cubra automaticamente imagens.
+A API fornece URLs oficiais `https://www.camara.leg.br/internet/deputado/bandep/<id>.jpg`, mas **URL pública não comprova autorização irrestrita de reutilização nem crédito do fotógrafo**. A integração atual conserva a URL oficial retornada pelo cadastro, valida o host e o ID parlamentar, e exibe a imagem por proxy do servidor sem copiar o arquivo para o repositório. A URL pública ainda não comprova autorização irrestrita nem o crédito do fotógrafo; os termos aplicáveis devem ser revisados antes de qualquer redistribuição ou cache externo. O mesmo cuidado vale para fotos do Senado. Não se assume que a licença de dados cubra automaticamente imagens.
 
 ## Fontes complementares pesquisadas
 

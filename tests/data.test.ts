@@ -28,6 +28,12 @@ test('IDs oficiais devem corresponder ao ID interno, nunca ao nome',()=>{
   const records=validatePoliticians([fixture(999999,'Nome igual fictício'),fixture(999998,'Nome igual fictício')]);
   assert.equal(records.length,2);
 });
+test('retratos oficiais da Câmara são aceitos apenas para o mesmo ID',()=>{
+  const withPhoto={...fixture(999999),photoUrl:'https://www.camara.leg.br/internet/deputado/bandep/999999.jpg'};
+  assert.equal(validatePoliticians([withPhoto]).length,1);
+  assert.throws(()=>validatePoliticians([{...withPhoto,photoUrl:'https://www.camara.leg.br/internet/deputado/bandep/999998.jpg'}]));
+  assert.throws(()=>validatePoliticians([{...withPhoto,photoUrl:'https://example.com/999999.jpg'}]));
+});
 test('duplicação e datas impossíveis são rejeitadas antes de persistir',()=>{
   assert.throws(()=>savePoliticians([fixture(),fixture()]));
   assert.throws(()=>validatePoliticians([{...fixture(),referenceDate:'2026-02-31'}]));
@@ -101,12 +107,12 @@ test('integração normaliza campos ausentes reais sem inventar ementa e descart
     if(url.includes('/historico')) return Response.json({dados:[{dataHora:'2023-02-01T10:00:00',situacao:null,descricaoStatus:null,siglaPartido:null,siglaUf:null}]});
     if(url.includes('/proposicoes?')) return Response.json({dados:[{id:123,siglaTipo:'REQ',numero:1,ano:2026,ementa:''}]});
     if(url.includes('/deputados?')) return Response.json({dados:[{id:1,nome:'Pessoa fictícia',siglaPartido:'TESTE',siglaUf:'SP'}],links:[]});
-    return Response.json({dados:{id:1,nomeCivil:'Pessoa fictícia teste',escolaridade:null,cpf:'DADO-TESTE-NAO-PUBLICAR',email:'privado@example.test',ultimoStatus:{nome:'Pessoa fictícia',siglaPartido:'TESTE',siglaUf:'SP',idLegislatura:57,situacao:'Exercício'}}});
+    return Response.json({dados:{id:1,nomeCivil:'Pessoa fictícia teste',escolaridade:null,cpf:'DADO-TESTE-NAO-PUBLICAR',email:'privado@example.test',ultimoStatus:{nome:'Pessoa fictícia',siglaPartido:'TESTE',siglaUf:'SP',idLegislatura:57,situacao:'Exercício',urlFoto:'https://www.camara.leg.br/internet/deputado/bandep/1.jpg'}}});
   };
   const records=await collectCamara(1,{fetcher,retries:0});
   assert.equal(records[0].proposals[0].title,'Ementa não informada pela fonte');
   assert.equal(records[0].timeline[0].title,'Atualização cadastral');
-  assert.equal(records[0].photoUrl,null);
+  assert.equal(records[0].photoUrl,'https://www.camara.leg.br/internet/deputado/bandep/1.jpg');
   assert.ok(!JSON.stringify(records).includes('NAO-PUBLICAR'));
   assert.ok(!JSON.stringify(records).includes('privado@example.test'));
   assert.equal(validatePoliticians(records).length,1);

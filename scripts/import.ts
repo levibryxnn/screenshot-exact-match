@@ -25,7 +25,7 @@ try {
         'Snapshot de consulta oficial com data definida; não representa atualização contínua.',
         'Até 5 proposições recentes por vínculo de autoria. Não constitui total de produção nem prova de implementação.',
         'Histórico parlamentar cadastral não constitui histórico eleitoral completo.',
-        'Não foram importados dados judiciais, patrimônio, promessas, fotografias ou contatos pessoais.',
+        'Não foram importados dados judiciais, patrimônio, promessas ou contatos pessoais. Retratos são URLs oficiais validadas e exibidas por proxy, sem cópia local.',
         'A fonte pode informar campos ausentes; estes permanecem nulos ou são identificados explicitamente.',
       ],
     },politicians};

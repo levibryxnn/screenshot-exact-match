@@ -9,8 +9,10 @@ import Citation, { formatDate } from './Citation';
 const normalize = (value: string) => value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLocaleLowerCase('pt-BR');
 export function initials(name: string) { return name.split(/\s+/).filter(Boolean).map(s => s[0]).slice(0, 2).join(''); }
 export function Portrait({ politician, large = false }: { politician: Politician; large?: boolean }) {
-  return <div className={`portrait ${large ? 'portrait-large' : ''}`} aria-hidden="true">
-    <div className="portrait-lines" /><span className="portrait-initials">{initials(politician.name)}</span><span className="portrait-marker">BR / {politician.uf}</span><span className="portrait-caption">RETRATO NÃO DISPONÍVEL</span>
+  const [failed, setFailed] = useState(false);
+  const showPhoto = Boolean(politician.photoUrl) && !failed;
+  return <div className={`portrait ${large ? 'portrait-large' : ''}`} aria-label={showPhoto ? `Foto oficial de ${politician.name}` : `Retrato não disponível de ${politician.name}`}>
+    {showPhoto ? <img className="portrait-image" src={`/api/photos/${politician.officialId}`} alt={`Foto oficial de ${politician.name}`} onError={() => setFailed(true)} /> : <><div className="portrait-lines" /><span className="portrait-initials">{initials(politician.name)}</span><span className="portrait-marker">BR / {politician.uf}</span><span className="portrait-caption">RETRATO NÃO DISPONÍVEL</span></>}
   </div>;
 }
 const unique = (values: string[]) => [...new Set(values)].sort((a, b) => a.localeCompare(b, 'pt-BR'));

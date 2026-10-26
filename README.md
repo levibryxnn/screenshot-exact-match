@@ -76,7 +76,7 @@ E2E inicia seu próprio servidor de produção na porta 3100, banco temporário 
 
 ## Limites desta versão
 
-Senado, TSE, DataJud, TCU e Portal da Transparência foram pesquisados, mas **não estão integrados**. Votos nominais, despesas, patrimônio, promessas, histórico eleitoral completo e fotografias autorizadas ainda não foram importados. Município não é inferido de UF. Ausência de registro não significa ausência de atuação ou processos.
+Senado, TSE, DataJud, TCU e Portal da Transparência foram pesquisados, mas **não estão integrados**. Votos nominais, despesas, patrimônio, promessas, histórico eleitoral completo e fotografias com licença de reutilização comprovada ainda não foram integrados; retratos oficiais da Câmara são carregados por URL quando disponíveis, com fallback e sem cópia local. Município não é inferido de UF. Ausência de registro não significa ausência de atuação ou processos.
 
 A fila de correções recebe pedidos e os mostra ao editor; triagem com prazos, notificação ao solicitante e edição granular de fatos cadastrais ainda não existem. O fluxo sensível permite criar, aprovar e retirar registros com justificativa. Não há pesquisa jurídica exaustiva nem equipe jurídica contratada. Antes de lançamento público amplo: revisão jurídica/LGPD proporcional, backups, observabilidade, origem HTTPS, limitação de tráfego no proxy e gestão de múltiplos editores.
 
