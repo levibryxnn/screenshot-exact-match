@@ -1,6 +1,6 @@
 # Arquitetura vigente
 
-Next.js App Router, React, TypeScript, Node 24, Zod, CSS próprio, Radix Dialog e Lucide. SQLite (node:sqlite) no disco local em `var/civis.db`: operação simples, sem custo de serviço e sem segredo de banco neste MVP. Aplicação deve rodar em processo Node com disco persistente; não usar filesystem efêmero/serverless como banco de produção. Acesso SQL encapsulado em repositório; migração PostgreSQL e worker dedicado são próximo incremento, não funcionalidades entregues.
+PLENÁRIO usa Next.js App Router, React, TypeScript, Node 24, Zod, CSS próprio, Radix Dialog e Lucide. SQLite (node:sqlite) no disco local em `var/civis.db` (caminho legado preservado na mudança de marca): operação simples, sem custo de serviço e sem segredo de banco neste MVP. Aplicação deve rodar em processo Node com disco persistente; não usar filesystem efêmero/serverless como banco de produção. Acesso SQL encapsulado em repositório; migração PostgreSQL e worker dedicado são próximo incremento, não funcionalidades entregues.
 
 `src/app`: páginas públicas SSR e rotas HTTP; `src/components`: interação; `src/lib`: contrato, validação, persistência, fonte oficial, política editorial; `scripts`: inicialização/importação; `data`: amostra oficial com proveniência; `tests`: testes executáveis; `docs`: pesquisa/metodologia/estado.
 

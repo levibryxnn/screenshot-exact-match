@@ -1,10 +1,13 @@
-# CIVIS — índice público da política brasileira
+# PLENÁRIO — índice público da política brasileira
 
 Aplicação web funcional de transparência política. Interface de seleção, pesquisa, filtros, perfis com proveniência e comparação, apoiados por importações oficiais da Câmara e do Senado e SQLite persistente. Sem notas de honestidade, recomendação de voto ou acusações geradas.
 
-Este `main` agora contém o núcleo completo do CIVIS. A versão anterior baseada no template Lovable foi preservada na branch [`lovable-preview-legacy`](https://github.com/levibryxnn/screenshot-exact-match/tree/lovable-preview-legacy); a migração foi feita em commits normais, sem reescrever o histórico.
+Esta branch contém o núcleo funcional do PLENÁRIO. A versão anterior baseada no template Lovable foi preservada na branch [`lovable-preview-legacy`](https://github.com/levibryxnn/screenshot-exact-match/tree/lovable-preview-legacy); a migração foi feita em commits normais, sem reescrever o histórico.
 
 ## Executar
+
+Nome público do produto: **PLENÁRIO**. O prefixo de configuração `CIVIS_*` e o caminho `var/civis.db` são mantidos para compatibilidade com ambientes e dados já existentes.
+
 
 Requer **Node 24**, npm e disco local persistente. Use o checkout existente; tarefas na nuvem já são isoladas, não crie worktree adicional.
 

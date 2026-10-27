@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { ArrowUpRight, ScanLine, Waves } from 'lucide-react';
+import { ArrowUpRight, Waves } from 'lucide-react';
 
 export default function Header() {
   const pathname = usePathname();
@@ -21,7 +21,7 @@ export default function Header() {
   }
   return <>
     <header className="site-header">
-      <Link href="/" className="brand" aria-label="Civis, início"><span className="brand-icon"><ScanLine size={23} strokeWidth={1.7} /></span><span>CIVIS<span className="brand-period">.</span><small>ÍNDICE PÚBLICO</small></span></Link>
+      <Link href="/" className="brand" aria-label="PLENÁRIO, início"><img className="brand-logo" src="/plenario-logo.svg" alt="" width="178" height="48" /><span className="brand-subtitle">ÍNDICE PÚBLICO</span></Link>
       <nav aria-label="Navegação principal">
         <Link href="/" aria-current={pathname === '/' ? 'page' : undefined}>Início</Link>
         <Link href="/#explorar">Políticos</Link>

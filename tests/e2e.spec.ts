@@ -6,7 +6,7 @@ test.beforeAll(async({request})=>{const r=await request.get('/api/politicians?pa
 async function home(page:Page){await page.goto('/');await expect(page.getByRole('heading',{level:1})).toBeVisible()}
 
 test('busca normalizada, filtros, seleção e estado vazio',async({page})=>{
- await home(page);const officialPhotos=page.locator('img[alt^="Foto oficial de "]');expect(await officialPhotos.count()).toBeGreaterThan(0);expect(await officialPhotos.first().evaluate((image:HTMLImageElement)=>image.complete&&image.naturalWidth>0)).toBeTruthy();const target=politicians.find(p=>p.name.normalize('NFD').replace(/[\u0300-\u036f]/g,'')!==p.name)??politicians[0];
+ await home(page);await expect(page).toHaveTitle('PLENÁRIO — Informação pública, escolha sua');await expect(page.getByRole('link',{name:'PLENÁRIO, início'})).toBeVisible();const logo=page.locator('.brand-logo');await expect(logo).toHaveAttribute('src','/plenario-logo.svg');expect(await logo.evaluate((image:HTMLImageElement)=>image.complete&&image.naturalWidth>0)).toBeTruthy();const officialPhotos=page.locator('img[alt^="Foto oficial de "]');expect(await officialPhotos.count()).toBeGreaterThan(0);expect(await officialPhotos.first().evaluate((image:HTMLImageElement)=>image.complete&&image.naturalWidth>0)).toBeTruthy();const target=politicians.find(p=>p.name.normalize('NFD').replace(/[\u0300-\u036f]/g,'')!==p.name)??politicians[0];
  const search=page.getByRole('textbox',{name:'Buscar político por nome'});
  await search.fill(target.name.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toUpperCase());
  await expect(page.getByRole('button',{name:`Selecionar ${target.name}`,exact:true})).toBeVisible();

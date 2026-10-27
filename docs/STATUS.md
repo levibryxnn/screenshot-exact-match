@@ -2,7 +2,7 @@
 
 ## Objetivo e entrega atual
 
-Núcleo funcional de consulta documental de parlamentares federais em exercício. A busca atual reúne a lista corrente completa da Câmara e do Senado; ainda não é cobertura completa da política brasileira. Referência do Gemini analisada, não tratada como evidência de dados, backend ou testes (GEMINI-REVIEW.md).
+Nome público do produto: PLENÁRIO (logo vetorial com “Á” dourado, título, navegação, rodapé e galerias atualizados). Prefixo técnico `CIVIS_*` e caminho de banco mantidos para compatibilidade. Núcleo funcional de consulta documental de parlamentares federais em exercício. A busca atual reúne a lista corrente completa da Câmara e do Senado; ainda não é cobertura completa da política brasileira. Referência do Gemini analisada, não tratada como evidência de dados, backend ou testes (GEMINI-REVIEW.md).
 
 ## Arquitetura vigente / stack
 
@@ -30,7 +30,7 @@ SQLite para reduzir pré-requisitos e custo no MVP; PostgreSQL/worker quando car
 - `npm run build`: passou sem warnings após correções. A página inicial usa resumos dos cards para reduzir o SSR; o perfil consulta o registro completo.
 - `npm run db:init`:594 registros (513 Câmara + 81 Senado); repetição preservou base.
 - `npm run data:import -- --source=camara --limit=513 --snapshot`:513 registros oficiais persistidos; `--source=senado --snapshot`:81 registros oficiais persistidos. Falhas anteriores registradas, cache preservado.
-- Navegador Playwright/Chromium: busca/filtros/seleção/empty, perfil correto, fonte/foco/Escape, comparação, autenticação/CSRF, pedido persistido privado, rascunho inválido bloqueado e rejeição; desktop/mobile390/reduced-motion. **6/6 passaram em 21,7s**, incluindo seleção por cargo, sem variável de origem pública para exercitar o padrão. Axe: zero violações WCAG A/AA nas telas testadas, sem alegação de certificação. Medição local Chromium1280×720 sem throttling:TTFB105ms,DOMContentLoaded218ms,load1599ms,8 solicitações JS/162410bytes; não é Lighthouse nem previsão de rede móvel. Evidências: `test-results/home-desktop.png`, `test-results/home-mobile.png`, `playwright-report/index.html` (geradas e ignoradas no Git).
+- Navegador Playwright/Chromium: busca/filtros/seleção/empty, perfil correto, fonte/foco/Escape, comparação, autenticação/CSRF, pedido persistido privado, rascunho inválido bloqueado e rejeição; desktop/mobile390/reduced-motion. **6/6 passaram em 23,7s**, incluindo seleção por cargo, sem variável de origem pública para exercitar o padrão. Axe: zero violações WCAG A/AA nas telas testadas, sem alegação de certificação. Medição local Chromium1280×720 sem throttling:TTFB107ms,DOMContentLoaded209ms,load3635ms,8 solicitações JS/162295bytes; não é Lighthouse nem previsão de rede móvel. Evidências: `test-results/home-desktop.png`, `test-results/home-mobile.png`, `playwright-report/index.html` (geradas e ignoradas no Git).
 
 ## Bugs encontrados e corrigidos
 

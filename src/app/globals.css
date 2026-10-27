@@ -12,7 +12,7 @@
 
 .data-notice{margin:20px auto;padding:16px 20px;max-width:1188px;border-left:2px solid var(--accent,#d6f78d);color:#d5dfd8;background:#141d1c;font-size:13px;line-height:1.7}.honeypot{display:none}.form-stack{display:grid;gap:16px;margin-block:24px}.form-stack label{display:grid;gap:8px}.form-stack input,.form-stack textarea{padding:12px;border:1px solid #415456;border-radius:4px;background:#11191b;color:#ecf0e9;max-width:100%;width:100%;font:inherit}.form-stack .button{width:fit-content}.editorial-item{margin:20px 0;padding:20px;border:1px solid #344549}.editorial-item pre{white-space:pre-wrap;overflow-wrap:anywhere;max-width:100%}.table-scroll{overflow-x:auto}.table-scroll th,.table-scroll td{padding:12px;text-align:left;border-bottom:1px solid #344549}.action-row{display:flex;flex-wrap:wrap;gap:12px}.prose-page .panel{margin-block:24px}.panel h2{margin-bottom:16px}.panel p{line-height:1.8;margin-block:12px}.prose-page ul{padding-left:22px;line-height:2}.site-footer{padding-bottom:110px}
 
-/* CIVIS editorial refresh: shared theme tokens and focused component refinements. */
+/* PLENÁRIO editorial refresh: shared theme tokens and focused component refinements. */
 html{scroll-padding-top:32px}
 body{background:radial-gradient(ellipse at 78% 5%,#142a3b 0,transparent 37%),var(--bg);font-family:'DM Sans',Arial,sans-serif}
 ::selection{background:var(--lime);color:#101925}
@@ -28,7 +28,7 @@ body{background:radial-gradient(ellipse at 78% 5%,#142a3b 0,transparent 37%),var
 .admin-link{letter-spacing:.04em}
 .selector-page,.page{max-width:1400px}
 .explore-intro{position:relative;isolation:isolate;overflow:hidden;min-height:365px;align-items:center;padding:62px 0 53px}
-.explore-intro:after{content:'';position:absolute;z-index:-1;inset:-16% -5% -10% 38%;background:url('/civis-congress-illustration.svg') center right/contain no-repeat;opacity:.38;pointer-events:none}
+.explore-intro:after{content:'';position:absolute;z-index:-1;inset:-16% -5% -10% 38%;background:url('/plenario-congress-illustration.svg') center right/contain no-repeat;opacity:.38;pointer-events:none}
 .hero-copy{max-width:720px;position:relative;z-index:1}
 .explore-intro .eyebrow{margin-bottom:25px;color:#c6d0da}
 .explore-intro h1{font-family:Georgia,'Times New Roman',serif;font-weight:400;font-size:clamp(52px,6.25vw,82px);line-height:1.02;letter-spacing:-.045em;margin:0 0 21px;max-width:780px}
@@ -173,3 +173,9 @@ body{background:radial-gradient(ellipse at 78% 5%,#142a3b 0,transparent 37%),var
 @media(max-width:800px){.explore-intro{min-height:320px}.explore-intro:after{left:22%;opacity:.24}.explore-intro h1{font-size:clamp(52px,8vw,68px)}.selection-layout{grid-template-columns:minmax(0,1fr) 255px}.roster-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.selected-visual{height:235px}.site-header nav{gap:15px}.site-header nav a{font-size:10px}.header-actions .admin-link{display:inline-flex;font-size:9px}.role-tabs{padding-top:12px}}
 @media(max-width:580px){.site-header{padding:16px 20px;gap:10px}.site-header nav{gap:0;justify-content:space-between;overflow-x:auto}.site-header nav a{font-size:10px}.site-header nav a[aria-current]:after{bottom:-13px}.header-actions{gap:12px}.selector-page,.page{padding-inline:20px}.explore-intro{min-height:310px;padding:40px 0 31px}.explore-intro:after{inset:0 -25% -4% 20%;background-position:right bottom;background-size:auto 100%;opacity:.18}.explore-intro .eyebrow{font-size:8px}.explore-intro h1{font-size:clamp(44px,12vw,58px);max-width:420px;line-height:1.04}.explore-intro p{max-width:330px;font-size:12px;line-height:1.7}.intro-aside{display:none}.coverage-strip{font-size:9px}.filter-fields{grid-template-columns:1fr 1fr;gap:14px 18px}.role-tabs{margin-inline:-20px;padding:12px 20px 4px;gap:7px}.role-tabs button{padding:7px 11px;min-height:35px;font-size:9px}.roster-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.portrait{aspect-ratio:.94}.card-info{min-height:88px}.card-info strong{font-size:12px}.card-role{font-size:9px}.selection-layout{gap:20px}.selected-visual{height:250px}.selected-content h2{font-size:31px}.site-footer{margin-inline:20px}}
 @media(max-width:380px){.site-header nav a{font-size:9px}.site-header{padding-inline:14px}.selector-page,.page{padding-inline:14px}.explore-intro h1{font-size:43px}.filter-fields{padding-inline:12px;gap:12px}.role-tabs{margin-inline:-14px;padding-inline:14px}}
+
+/* PLENÁRIO wordmark replaces the previous product mark; preserve the existing compact navigation layout. */
+.brand{display:flex;flex-direction:column;align-items:flex-start;justify-content:center;gap:2px;min-width:150px;flex-shrink:0;letter-spacing:normal}
+.brand-logo{display:block;width:154px;max-width:100%;height:auto}
+.brand-subtitle{display:block;padding-left:2px;color:var(--muted);font-family:monospace;font-size:7px;line-height:1.2;letter-spacing:.17em;font-weight:400}
+@media(max-width:580px){.brand{min-width:106px}.brand-logo{width:108px}.brand-subtitle{font-size:5.5px;letter-spacing:.12em}}
