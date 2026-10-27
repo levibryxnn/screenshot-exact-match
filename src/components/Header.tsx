@@ -9,6 +9,7 @@ import { ArrowUpRight, Menu, Waves, X } from 'lucide-react';
 const mobileLinks = [
   { href: '/', label: 'Início' },
   { href: '/#explorar', label: 'Políticos' },
+  { href: '/cargos', label: 'Guia de cargos' },
   { href: '/comparar', label: 'Comparador' },
   { href: '/metodologia', label: 'Metodologia' },
 ];
@@ -33,6 +34,7 @@ export default function Header() {
       <nav aria-label="Navegação principal">
         <Link href="/" aria-current={pathname === '/' ? 'page' : undefined}>Início</Link>
         <Link href="/#explorar">Políticos</Link>
+        <Link href="/cargos" aria-current={pathname === '/cargos' ? 'page' : undefined}>Cargos</Link>
         <Link href="/comparar" aria-current={pathname === '/comparar' ? 'page' : undefined}>Comparador</Link>
         <Link href="/metodologia" aria-current={pathname === '/metodologia' ? 'page' : undefined}>Metodologia<ArrowUpRight size={12} /></Link>
       </nav>

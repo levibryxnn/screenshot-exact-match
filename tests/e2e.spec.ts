@@ -34,6 +34,31 @@ test('menu lateral mobile abre com animação, fecha e navega por teclado e toqu
  await expect(page).toHaveURL(/\/metodologia$/);await expect(page).toHaveTitle('Fontes e metodologia · PLENÁRIO');
 });
 
+test('guia de cargos explica os níveis de governo, fontes e adapta-se ao mobile',async({page})=>{
+ await page.goto('/cargos');
+ await expect(page).toHaveTitle('Quem faz o quê? Guia dos cargos públicos · PLENÁRIO');
+ await expect(page.getByRole('heading',{level:1,name:/Quem faz o quê no poder público/})).toBeVisible();
+ for(const role of ['Vereador(a)','Prefeito(a)','Deputado(a) estadual','Governador(a)','Deputado(a) federal','Senador(a)','Presidente da República'])
+  await expect(page.getByRole('heading',{name:role,exact:true})).toBeVisible();
+ const cards=page.locator('.office-card');await expect(cards).toHaveCount(13);
+ await expect(page.locator('.office-source')).toHaveCount(13);
+ for(const card of await cards.all()){
+  await expect(card.getByRole('heading',{name:'O que faz'})).toBeVisible();
+  await expect(card.getByText('Bom saber:',{exact:false})).toBeVisible();
+  await expect(card.getByRole('link',{name:/Constituição Federal/})).toHaveAttribute('href',/^https:\/\/www\.planalto\.gov\.br\/ccivil_03\/constituicao\/constituicao\.htm/);
+ }
+ await new AxeBuilder({page}).withTags(['wcag2a','wcag2aa','wcag21aa']).analyze().then(result=>expect(result.violations).toEqual([]));
+ await page.screenshot({path:'test-results/cargos-desktop.png',fullPage:true});
+ await page.setViewportSize({width:390,height:844});
+ expect(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth)).toBeTruthy();
+ await page.getByRole('button',{name:'Abrir menu'}).click();
+ const menu=page.getByRole('dialog',{name:'Navegação PLENÁRIO'});
+ await expect(menu.getByRole('link',{name:'Guia de cargos'})).toBeVisible();
+ await page.keyboard.press('Escape');await expect(menu).toBeHidden();
+ const mobileAxe=await new AxeBuilder({page}).withTags(['wcag2a','wcag2aa','wcag21aa']).analyze();expect(mobileAxe.violations).toEqual([]);
+ await page.screenshot({path:'test-results/cargos-mobile.png',fullPage:true});
+});
+
 test('perfil real, proveniência, teclado e lacunas explícitas',async({page})=>{
  const p=politicians[0];await page.goto(`/politicos/${encodeURIComponent(p.id)}`);
  await expect(page.getByRole('heading',{name:p.name,exact:true})).toBeVisible();
