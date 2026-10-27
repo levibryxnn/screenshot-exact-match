@@ -18,6 +18,10 @@ test('busca normalizada, filtros, seleção e estado vazio',async({page})=>{
  for(const card of await cards.all())await expect(card.locator('.card-party')).toContainText(target.party);
  await search.fill('nome inexistente 987654321');await expect(page.getByRole('heading',{name:'Nenhum perfil encontrado'})).toBeVisible();
  await page.getByRole('button',{name:'Limpar busca e filtros'}).click();await expect(page.locator('.character-card')).toHaveCount(Math.min(8,politicians.length));
+ const roleTabs=page.getByRole('group',{name:'Filtrar políticos por cargo'});await roleTabs.getByRole('button',{name:'Senadores'}).click();
+ await expect(page.locator('.character-card')).toHaveCount(Math.min(8,politicians.filter(p=>p.role==='Senador(a)').length));
+ for(const card of await page.locator('.character-card').all())await expect(card.locator('.card-role')).toHaveText('Senador(a)');
+ await roleTabs.getByRole('button',{name:'Todos'}).click();await expect(page.locator('.character-card')).toHaveCount(Math.min(8,politicians.length));
 });
 
 test('perfil real, proveniência, teclado e lacunas explícitas',async({page})=>{

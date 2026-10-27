@@ -26,15 +26,15 @@ Dados retidos em disco sobrevivem a reinícios; processos precisam ser iniciados
 
 ## O que está implementado
 
-- Seleção de perfis, busca tolerante a acentos, filtros de cargo/partido/UF/situação e paginação.
+- Seleção de perfis com tema editorial marinho e dourado, hero com ilustração arquitetônica original, busca tolerante a acentos, filtros reais por cargo/partido/UF/situação e paginação.
 - Perfis navegáveis, histórico parlamentar, até cinco proposições por deputado e citações junto dos registros.
 - Comparação factual de até quatro pessoas, com contexto e lacunas visíveis.
 - Importador real com domínio restrito, timeout, repetição controlada, validação e persistência transacional.
 - Versões dos dados, histórico de importações e cache preservado em caso de falha.
 - Pedidos de correção persistidos e privados; área editorial autenticada, rascunhos, aprovação/rejeição de registros jurídicos e auditoria.
-- Alertas de dados antigos, conteúdo indisponível e falha de atualização; teclado, movimento reduzido e layout móvel.
+- Alertas de dados antigos, conteúdo indisponível e falha de atualização; teclado, movimento reduzido e layout móvel. Cabeçalho e navegação receberam revisão visual sem alterar rotas ou estado de dados.
 
-Snapshots oficiais: **513 deputados** e **81 senadores em exercício**. A Câmara inclui até cinco proposições recentes por deputado; os 81 senadores vêm da lista corrente do Senado. Esses números descrevem os lotes importados, não a totalidade de suas atividades. [Proveniência e limitações](docs/SNAPSHOT.md).
+Snapshots oficiais: **513 deputados** e **81 senadores em exercício**. A Câmara inclui até cinco proposições recentes por deputado; os 81 senadores vêm da lista corrente do Senado. Esses números descrevem os lotes importados, não a totalidade de suas atividades. [Proveniência e limitações](docs/SNAPSHOT.md). Capturas atuais em [docs/preview](docs/preview/index.html).
 
 ## Atualizar dados
 

@@ -40,3 +40,8 @@ Registro npm consultado em `https://registry.npmjs.org/<pacote>/latest`: Next 16
 ## Limitações da pesquisa
 
 A API `api.github.com` retornou 403 pelo proxy nesta máquina; não foi possível verificar métricas de atividade por esse endpoint. Não afirmar quantidade de contribuidores ou atividade recente sem evidência. Páginas e arquivos oficiais efetivamente acessados estão identificados acima. A escolha foi baseada no código/pacotes disponíveis e requisitos do MVP, sem copiar componentes de licença incerta.
+
+
+## Redesign visual atual
+
+A tela principal e as páginas internas usam o CSS próprio já existente. A atualização ajusta os tokens globais para marinho/dourado, preserva CIVIS e os componentes React, e mantém o tratamento acessível de foco e movimento reduzido. Os atalhos de cargo são derivados dos cargos presentes no lote de dados, sem categorias sem fonte. O hero usa um SVG arquitetônico original, criado no projeto; não substitui fotografia licenciada nem depende de biblioteca ou serviço externo. Capturas renderizadas: `docs/preview/assets/`.

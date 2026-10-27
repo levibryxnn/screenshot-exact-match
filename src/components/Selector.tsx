@@ -17,6 +17,7 @@ export function Portrait({ politician, large = false }: { politician: Politician
   </div>;
 }
 const unique = (values: string[]) => [...new Set(values)].sort((a, b) => a.localeCompare(b, 'pt-BR'));
+const roleLabel = (role: string) => role === 'Deputado(a) federal' ? 'Deputados federais' : role === 'Senador(a)' ? 'Senadores' : role;
 
 export default function Selector({ politicians, status }: { politicians: Politician[]; status: DataStatus }) {
   const [query, setQuery] = useState('');
@@ -55,7 +56,7 @@ export default function Selector({ politicians, status }: { politicians: Politic
   }
   return <div className="selector-page">
     <section className="explore-intro">
-      <div><div className="eyebrow"><span className="status-dot" />INFORMAÇÃO PÚBLICA. ESCOLHA CONSCIENTE.</div><h1>A política é pública.<br />Conheça <span>de perto.</span></h1><p>Explore trajetórias. Confira documentos.<br className="desktop-break" /> Forme suas próprias conclusões.</p></div>
+      <div className="hero-copy"><div className="eyebrow"><span className="status-dot" />INFORMAÇÃO PÚBLICA. ESCOLHA CONSCIENTE.</div><h1>Conheça quem<br />representa <span>você.</span></h1><p>Conheça parlamentares federais por meio de dados oficiais, com fontes e limites visíveis para você conferir.</p></div>
       <div className="intro-aside"><div className="index-stamp"><Fingerprint size={28} strokeWidth={1} /><span>SEM NOTAS.<br />SEM LADOS.<br /><strong>COM FONTES.</strong></span></div><a href="#explorar" className="text-link">Explore os perfis<ArrowDown size={15} /></a></div>
     </section>
     <div className="coverage-strip"><span className="coverage-label">RECORTE DOCUMENTAL</span><span>{historical ? `Registros históricos e correntes · ${referenceYears.length ? `referências de ${referenceYears.join(' / ')}` : 'data do documento'}.` : 'Câmara e Senado · registros correntes importados das fontes oficiais.'} Consulte a referência de cada perfil.</span><Link href="/metodologia">Entenda a cobertura<ArrowUpRight /></Link></div>
@@ -66,11 +67,14 @@ export default function Selector({ politicians, status }: { politicians: Politic
       <div className="filter-panel">
         <label className="search-field"><Search size={19} aria-hidden="true" /><span className="sr-only">Buscar político por nome</span><input placeholder="Quem você quer conhecer?" aria-label="Buscar político por nome" value={query} onChange={e => { setQuery(e.target.value); setPage(1); }} />{query && <button onClick={() => { setQuery(''); setPage(1); }} aria-label="Limpar pesquisa"><X size={16} /></button>}</label>
         <div className="filter-fields"><SlidersHorizontal size={17} className="filter-icon" aria-hidden="true" />
-          <label><span>Cargo</span><select aria-label="Filtrar por cargo" value={role} onChange={e => { setRole(e.target.value); setPage(1); }}><option value="">Todos os cargos</option>{unique(politicians.map(p => p.role)).map(v => <option key={v}>{v}</option>)}</select></label>
           <label><span>Partido</span><select aria-label="Filtrar por partido" value={party} onChange={e => { setParty(e.target.value); setPage(1); }}><option value="">Todos</option>{unique(politicians.map(p => p.party)).map(v => <option key={v}>{v}</option>)}</select></label>
           <label><span>Estado</span><select aria-label="Filtrar por estado" value={uf} onChange={e => { setUf(e.target.value); setPage(1); }}><option value="">Todo o Brasil</option>{unique(politicians.map(p => p.uf)).map(v => <option key={v}>{v}</option>)}</select></label>
           <label><span>Mandato</span><select aria-label="Filtrar por situação do mandato" value={mandateStatus} onChange={e => { setMandateStatus(e.target.value); setPage(1); }}><option value="">Todas as situações</option>{unique(politicians.map(p => p.status)).map(v => <option key={v}>{v}</option>)}</select></label>
         </div>
+      </div>
+      <div className="role-tabs" role="group" aria-label="Filtrar políticos por cargo">
+        <button type="button" className={!role ? 'is-active' : ''} aria-pressed={!role} onClick={() => { setRole(''); setPage(1); }}>Todos</button>
+        {unique(politicians.map(p => p.role)).map(value => <button type="button" key={value} className={role === value ? 'is-active' : ''} aria-pressed={role === value} onClick={() => { setRole(role === value ? '' : value); setPage(1); }}>{roleLabel(value)}</button>)}
       </div>
       <div className="results-heading"><p aria-live="polite"><strong>{filtered.length.toString().padStart(2, '0')}</strong> perfis no recorte{hasFilters ? ' com esses filtros' : ''}</p>{hasFilters ? <button className="text-link" onClick={reset}>Limpar filtros<X size={13} /></button> : <span>ORDEM ALFABÉTICA <ArrowDown size={12} /></span>}</div>
       {!selected ? <div className="empty-state"><Search size={28} /><h2>{politicians.length ? 'Nenhum perfil encontrado' : 'Aguardando dados documentados'}</h2><p>{politicians.length ? 'Experimente outro nome ou ajuste os filtros.' : 'Nenhum registro foi importado. Consulte a cobertura e o estado da integração.'}</p><button className="button" onClick={reset}>Limpar busca e filtros</button></div> : <div className="selection-layout">

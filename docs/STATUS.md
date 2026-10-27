@@ -16,7 +16,7 @@ Modelo: politicians com ID `camara:<id>` ou `senado:<id>`, versões JSON e check
 
 ## Concluído
 
-Seleção estilo personagem com retratos oficiais da Câmara e fallback tipográfico para a lista do Senado, pesquisa sem acentos, filtros cargo/partido/UF/situação, paginação, perfil detalhado, timeline, proposições, modal de fonte, comparação2–4, movimento reduzido, teclado, mobile e estados de falha/ausência/dados antigos. API com validação/paginação. Atualização transacional, timeout/retry/domínio restrito e logs. Correções persistidas privadamente. Admin desativado sem senha, sessão assinada/HttpOnly, revisão sensível, aprovação/rejeição com justificativa e auditoria. Revalidação pública de registros sensíveis vencidos evita apresentação como situação vigente.
+Seleção estilo personagem redesenhada em marinho/dourado, com hero editorial e ilustração arquitetônica vetorial original; retratos oficiais da Câmara e fallback tipográfico no Senado; busca sem acentos, chips reais de cargo, filtros partido/UF/situação, paginação, perfil detalhado, timeline, proposições, modal de fonte, comparação 2–4, movimento reduzido, teclado, mobile e estados de falha/ausência/dados antigos. API com validação/paginação. Atualização transacional, timeout/retry/domínio restrito e logs. Correções persistidas privadamente. Admin desativado sem senha, sessão assinada/HttpOnly, revisão sensível, aprovação/rejeição com justificativa e auditoria. Revalidação pública de registros sensíveis vencidos evita apresentação como situação vigente.
 
 ## Decisões técnicas
 
@@ -30,7 +30,7 @@ SQLite para reduzir pré-requisitos e custo no MVP; PostgreSQL/worker quando car
 - `npm run build`: passou sem warnings após correções. A página inicial usa resumos dos cards para reduzir o SSR; o perfil consulta o registro completo.
 - `npm run db:init`:594 registros (513 Câmara + 81 Senado); repetição preservou base.
 - `npm run data:import -- --source=camara --limit=513 --snapshot`:513 registros oficiais persistidos; `--source=senado --snapshot`:81 registros oficiais persistidos. Falhas anteriores registradas, cache preservado.
-- Navegador Playwright/Chromium: busca/filtros/seleção/empty, perfil correto, fonte/foco/Escape, comparação, autenticação/CSRF, pedido persistido privado, rascunho inválido bloqueado e rejeição; desktop/mobile390/reduced-motion. **6/6 passaram em 21,0s**, sem variável de origem pública para exercitar o padrão. Axe: zero violações WCAG A/AA nas telas testadas, sem alegação de certificação. Medição local Chromium1280×720 sem throttling:TTFB195ms,DOMContentLoaded341ms,load1731ms,8 solicitações JS/162316bytes; não é Lighthouse nem previsão de rede móvel. Evidências: `test-results/home-desktop.png`, `test-results/home-mobile.png`, `playwright-report/index.html` (geradas e ignoradas no Git).
+- Navegador Playwright/Chromium: busca/filtros/seleção/empty, perfil correto, fonte/foco/Escape, comparação, autenticação/CSRF, pedido persistido privado, rascunho inválido bloqueado e rejeição; desktop/mobile390/reduced-motion. **6/6 passaram em 21,7s**, incluindo seleção por cargo, sem variável de origem pública para exercitar o padrão. Axe: zero violações WCAG A/AA nas telas testadas, sem alegação de certificação. Medição local Chromium1280×720 sem throttling:TTFB105ms,DOMContentLoaded218ms,load1599ms,8 solicitações JS/162410bytes; não é Lighthouse nem previsão de rede móvel. Evidências: `test-results/home-desktop.png`, `test-results/home-mobile.png`, `playwright-report/index.html` (geradas e ignoradas no Git).
 
 ## Bugs encontrados e corrigidos
 
@@ -49,4 +49,4 @@ Não integrados: TSE/DataJud/TCU/Transparência, votos/despesas, promessas, patr
 
 ## Ambiente na nuvem
 
-`install_script` e `start_skill` salvos no rascunho do ambiente, junto dos domínios de pesquisa e API. Instalação limpa, inicialização repetida e build executados com sucesso. Servidor de produção reiniciado e GET de saúde/lista/perfil real validados. Configuração salva não significa publicação: revisar/salvar nas configurações do ambiente e publicar é ação do usuário. Não foi validada restauração em nova tarefa. Capturas persistidas em `docs/screenshots/`.
+`install_script` e `start_skill` salvos no rascunho do ambiente, junto dos domínios de pesquisa e API. Instalação limpa, inicialização repetida e build executados com sucesso. Servidor de produção reiniciado e GET de saúde/lista/perfil real validados. Configuração salva não significa publicação: revisar/salvar nas configurações do ambiente e publicar é ação do usuário. Não foi validada restauração em nova tarefa. Capturas atuais desktop/mobile e perfil/comparação/metodologia persistidas em `docs/preview/assets/`; cópia da tela inicial em `docs/screenshots/`.

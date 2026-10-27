@@ -23,8 +23,9 @@ export default function Header() {
     <header className="site-header">
       <Link href="/" className="brand" aria-label="Civis, início"><span className="brand-icon"><ScanLine size={23} strokeWidth={1.7} /></span><span>CIVIS<span className="brand-period">.</span><small>ÍNDICE PÚBLICO</small></span></Link>
       <nav aria-label="Navegação principal">
-        <Link href="/" aria-current={pathname === '/' ? 'page' : undefined}>Explorar</Link>
-        <Link href="/comparar" aria-current={pathname === '/comparar' ? 'page' : undefined}>Comparar</Link>
+        <Link href="/" aria-current={pathname === '/' ? 'page' : undefined}>Início</Link>
+        <Link href="/#explorar">Políticos</Link>
+        <Link href="/comparar" aria-current={pathname === '/comparar' ? 'page' : undefined}>Comparador</Link>
         <Link href="/metodologia" aria-current={pathname === '/metodologia' ? 'page' : undefined}>Metodologia<ArrowUpRight size={12} /></Link>
       </nav>
       <div className="header-actions"><button className="motion-toggle" onClick={toggle} aria-pressed={reduced} aria-label={reduced ? 'Ativar animações opcionais' : 'Reduzir animações opcionais'} title={reduced ? 'Movimento reduzido' : 'Reduzir movimento'}><Waves size={16} /><span>{reduced ? 'Sem movimento' : 'Reduzir movimento'}</span></button><Link className="admin-link" href="/admin">Revisão</Link></div>
