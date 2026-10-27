@@ -179,3 +179,32 @@ body{background:radial-gradient(ellipse at 78% 5%,#142a3b 0,transparent 37%),var
 .brand-logo{display:block;width:154px;max-width:100%;height:auto}
 .brand-subtitle{display:block;padding-left:2px;color:var(--muted);font-family:monospace;font-size:7px;line-height:1.2;letter-spacing:.17em;font-weight:400}
 @media(max-width:580px){.brand{min-width:106px}.brand-logo{width:108px}.brand-subtitle{font-size:5.5px;letter-spacing:.12em}}
+
+/* Accessible slide-over navigation, powered by the already installed Radix Dialog primitive. */
+.mobile-menu-trigger{display:none;align-items:center;justify-content:center;gap:8px;min-height:42px;padding:0 13px;border:1px solid var(--line);border-radius:3px;color:var(--text);font-size:11px;letter-spacing:.04em;transition:color .18s,border-color .18s}
+.mobile-menu-trigger:hover{border-color:#b28a50;color:#f2d59e}
+.mobile-menu-overlay{position:fixed;inset:0;z-index:1100;background:rgb(2 8 15 / 72%);animation:menu-overlay-in .2s var(--ease-out-3,cubic-bezier(0,.3,1,1)) both}
+.mobile-menu-sheet{position:fixed;z-index:1101;inset:0 0 0 auto;width:min(88vw,380px);height:100dvh;display:flex;flex-direction:column;padding:28px 26px;background:#091522;border-left:1px solid #35495d;box-shadow:-16px 0 48px rgb(0 0 0 / 32%);outline:none;animation:menu-sheet-in .28s var(--ease-out-3,cubic-bezier(0,.3,1,1)) both}
+.mobile-menu-heading{display:flex;align-items:center;justify-content:space-between;gap:18px;padding-bottom:18px;border-bottom:1px solid var(--line)}
+.mobile-menu-logo{display:block;width:142px;height:auto;margin-bottom:8px}
+.mobile-menu-description{margin:0;color:var(--muted);font-size:11px}
+.mobile-menu-close{display:grid;place-items:center;width:42px;height:42px;border:1px solid var(--line);border-radius:3px;color:var(--muted)}
+.mobile-menu-close:hover{border-color:#b28a50;color:#f2d59e}
+.mobile-menu-links{display:flex;flex-direction:column;margin-top:22px}
+.mobile-menu-links a{display:grid;grid-template-columns:36px 1fr auto;align-items:center;gap:12px;min-height:66px;border-bottom:1px solid #26394b;color:#e9e7e0;font-family:Georgia,'Times New Roman',serif;font-size:20px;transition:color .18s,padding .18s}
+.mobile-menu-links a:hover,.mobile-menu-links a[aria-current=page]{padding-left:5px;color:#e6bd78}
+.mobile-menu-links a>svg{color:#9fb0c1}
+.mobile-menu-index{color:#9fb0c1;font:10px 'Courier New',monospace;letter-spacing:.08em}
+.mobile-menu-footer{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;margin-top:auto;padding-top:18px;border-top:1px solid var(--line)}
+.mobile-menu-footer>span{color:#aab7c5;font:9px/1.8 'Courier New',monospace;letter-spacing:.09em}
+.mobile-menu-footer>a{display:inline-flex;align-items:center;gap:7px;color:#e5bd78;font-size:10px}
+@keyframes menu-overlay-in{from{opacity:0}to{opacity:1}}
+@keyframes menu-sheet-in{from{transform:translateX(100%)}to{transform:translateX(0)}}
+@keyframes menu-sheet-out{from{transform:translateX(0)}to{transform:translateX(100%)}}
+.mobile-menu-sheet[data-state=closed]{animation:menu-sheet-out .18s var(--ease-in-2,cubic-bezier(.5,0,1,1)) both}
+.mobile-menu-overlay[data-state=closed]{animation:menu-overlay-out .16s ease-in both}
+@keyframes menu-overlay-out{from{opacity:1}to{opacity:0}}
+@media(max-width:800px){.site-header{gap:16px;padding-inline:24px}.site-header nav{display:none}.mobile-menu-trigger{display:inline-flex;margin-left:auto}}
+@media(max-width:580px){.site-header{padding-inline:20px}.header-actions .admin-link,.motion-toggle span{display:none}.header-actions{gap:0}}
+@media(prefers-reduced-motion:reduce){.mobile-menu-overlay,.mobile-menu-sheet{animation:none!important;transition:none!important}}
+html[data-reduced-motion=true] .mobile-menu-overlay,html[data-reduced-motion=true] .mobile-menu-sheet{animation:none!important;transition:none!important}

@@ -6,7 +6,7 @@ test.beforeAll(async({request})=>{const r=await request.get('/api/politicians?pa
 async function home(page:Page){await page.goto('/');await expect(page.getByRole('heading',{level:1})).toBeVisible()}
 
 test('busca normalizada, filtros, seleção e estado vazio',async({page})=>{
- await home(page);await expect(page).toHaveTitle('PLENÁRIO — Informação pública, escolha sua');await expect(page.getByRole('link',{name:'PLENÁRIO, início'})).toBeVisible();const logo=page.locator('.brand-logo');await expect(logo).toHaveAttribute('src','/plenario-logo.svg');expect(await logo.evaluate((image:HTMLImageElement)=>image.complete&&image.naturalWidth>0)).toBeTruthy();const officialPhotos=page.locator('img[alt^="Foto oficial de "]');expect(await officialPhotos.count()).toBeGreaterThan(0);expect(await officialPhotos.first().evaluate((image:HTMLImageElement)=>image.complete&&image.naturalWidth>0)).toBeTruthy();const target=politicians.find(p=>p.name.normalize('NFD').replace(/[\u0300-\u036f]/g,'')!==p.name)??politicians[0];
+ await home(page);await expect(page).toHaveTitle('PLENÁRIO — Informação pública, escolha sua');await expect(page.getByRole('link',{name:'PLENÁRIO, início'})).toBeVisible();const logo=page.locator('.brand-logo');await expect(logo).toHaveAttribute('src','/plenario-logo.svg');await expect.poll(()=>logo.evaluate((image:HTMLImageElement)=>image.naturalWidth)).toBeGreaterThan(0);const officialPhotos=page.locator('img[alt^="Foto oficial de "]');expect(await officialPhotos.count()).toBeGreaterThan(0);await expect(officialPhotos.first()).toHaveAttribute('src',/^\/api\/photos\//);const target=politicians.find(p=>p.name.normalize('NFD').replace(/[\u0300-\u036f]/g,'')!==p.name)??politicians[0];
  const search=page.getByRole('textbox',{name:'Buscar político por nome'});
  await search.fill(target.name.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toUpperCase());
  await expect(page.getByRole('button',{name:`Selecionar ${target.name}`,exact:true})).toBeVisible();
@@ -22,6 +22,16 @@ test('busca normalizada, filtros, seleção e estado vazio',async({page})=>{
  await expect(page.locator('.character-card')).toHaveCount(Math.min(8,politicians.filter(p=>p.role==='Senador(a)').length));
  for(const card of await page.locator('.character-card').all())await expect(card.locator('.card-role')).toHaveText('Senador(a)');
  await roleTabs.getByRole('button',{name:'Todos'}).click();await expect(page.locator('.character-card')).toHaveCount(Math.min(8,politicians.length));
+});
+
+test('menu lateral mobile abre com animação, fecha e navega por teclado e toque',async({page})=>{
+ await page.setViewportSize({width:390,height:844});await page.goto('/');
+ const trigger=page.getByRole('button',{name:'Abrir menu'});await expect(trigger).toBeVisible();await trigger.click();
+ const dialog=page.getByRole('dialog',{name:'Navegação PLENÁRIO'});await expect(dialog).toBeVisible();await expect(dialog.getByRole('link',{name:'Comparador'})).toBeVisible();
+ expect(await dialog.evaluate(element=>getComputedStyle(element).animationName)).toContain('menu-sheet-in');expect(await page.locator('html').evaluate(element=>getComputedStyle(element).getPropertyValue('--ease-out-3').trim())).toContain('cubic-bezier');
+ const accessibility=await new AxeBuilder({page}).withTags(['wcag2a','wcag2aa']).analyze();expect(accessibility.violations).toEqual([]);
+ await page.keyboard.press('Escape');await expect(dialog).toBeHidden();await trigger.click();await dialog.getByRole('link',{name:'Metodologia'}).click();
+ await expect(page).toHaveURL(/\/metodologia$/);await expect(page).toHaveTitle('Fontes e metodologia · PLENÁRIO');
 });
 
 test('perfil real, proveniência, teclado e lacunas explícitas',async({page})=>{
@@ -71,6 +81,7 @@ test('acessibilidade desktop, móvel e preferência de movimento reduzido',async
  await page.setViewportSize({width:390,height:844});await page.emulateMedia({reducedMotion:'reduce'});await page.reload();
  expect(await page.evaluate(()=>window.matchMedia('(prefers-reduced-motion: reduce)').matches)).toBeTruthy();
  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth)).toBeTruthy();
+ await page.getByRole('button',{name:'Abrir menu'}).click();const menu=page.getByRole('dialog',{name:'Navegação PLENÁRIO'});await expect(menu).toBeVisible();expect(await menu.evaluate(element=>getComputedStyle(element).animationName)).toBe('none');await page.keyboard.press('Escape');await expect(menu).toBeHidden();
  result=await new AxeBuilder({page}).withTags(['wcag2a','wcag2aa','wcag21aa']).analyze();expect(result.violations).toEqual([]);
  await page.screenshot({path:'test-results/home-mobile.png',fullPage:true});
  await page.goto(`/politicos/${encodeURIComponent(politicians[0].id)}`);await expect(page.getByRole('heading',{name:politicians[0].name,exact:true})).toBeVisible();expect(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth)).toBeTruthy();

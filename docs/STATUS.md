@@ -6,7 +6,7 @@ Nome público do produto: PLENÁRIO (logo vetorial com “Á” dourado, título
 
 ## Arquitetura vigente / stack
 
-Next16.4.3, React19.3.1, TypeScript, Node24, SQLite node:sqlite, Zod, Radix Dialog, Lucide e CSS próprio. UI pública SSR com ilhas interativas, conector server-side, persistência e edição isoladas. Sem serviços pagos, sem infraestrutura publicada. Repositório: `src/app`, `src/components`, `src/lib`, `scripts`, `data`, `tests`, `docs`.
+Next16.4.3, React19.3.1, TypeScript, Node24, SQLite node:sqlite, Zod, Radix Dialog, Lucide, Open Props (só easings CSS) e CSS próprio. UI pública SSR com ilhas interativas, conector server-side, persistência e edição isoladas. Sem serviços pagos, sem infraestrutura publicada. Repositório: `src/app`, `src/components`, `src/lib`, `scripts`, `data`, `tests`, `docs`.
 
 ## Dados e integrações
 
@@ -20,7 +20,7 @@ Seleção estilo personagem redesenhada em marinho/dourado, com hero editorial e
 
 ## Decisões técnicas
 
-SQLite para reduzir pré-requisitos e custo no MVP; PostgreSQL/worker quando carga justificar. CSS e tabelas evitam bibliotecas redundantes de gráficos/carrosséis. Radix cuida do foco em diálogos. Retratos são carregados da URL oficial retornada pela Câmara, sem cópia local, com validação do ID e fallback tipográfico; os termos de reutilização devem ser revisados antes de distribuição fora da fonte oficial. Não houve cópia de código dos projetos cívicos pesquisados; bibliotecas reutilizadas têm licença conferida. Nenhum resumo por IA é publicado como prova.
+SQLite para reduzir pré-requisitos e custo no MVP; PostgreSQL/worker quando carga justificar. CSS e tabelas evitam bibliotecas redundantes de gráficos/carrosséis. Radix cuida do foco no drawer e diálogos; Open Props fornece 5,5 KB de tokens de easing em CSS, sem JS. Retratos são carregados da URL oficial retornada pela Câmara, sem cópia local, com validação do ID e fallback tipográfico; os termos de reutilização devem ser revisados antes de distribuição fora da fonte oficial. Não houve cópia de código dos projetos cívicos pesquisados; bibliotecas reutilizadas têm licença conferida. Nenhum resumo por IA é publicado como prova.
 
 ## Validação efetivamente executada
 
@@ -30,7 +30,7 @@ SQLite para reduzir pré-requisitos e custo no MVP; PostgreSQL/worker quando car
 - `npm run build`: passou sem warnings após correções. A página inicial usa resumos dos cards para reduzir o SSR; o perfil consulta o registro completo.
 - `npm run db:init`:594 registros (513 Câmara + 81 Senado); repetição preservou base.
 - `npm run data:import -- --source=camara --limit=513 --snapshot`:513 registros oficiais persistidos; `--source=senado --snapshot`:81 registros oficiais persistidos. Falhas anteriores registradas, cache preservado.
-- Navegador Playwright/Chromium: busca/filtros/seleção/empty, perfil correto, fonte/foco/Escape, comparação, autenticação/CSRF, pedido persistido privado, rascunho inválido bloqueado e rejeição; desktop/mobile390/reduced-motion. **6/6 passaram em 23,7s**, incluindo seleção por cargo, sem variável de origem pública para exercitar o padrão. Axe: zero violações WCAG A/AA nas telas testadas, sem alegação de certificação. Medição local Chromium1280×720 sem throttling:TTFB107ms,DOMContentLoaded209ms,load3635ms,8 solicitações JS/162295bytes; não é Lighthouse nem previsão de rede móvel. Evidências: `test-results/home-desktop.png`, `test-results/home-mobile.png`, `playwright-report/index.html` (geradas e ignoradas no Git).
+- Navegador Playwright/Chromium: busca/filtros/seleção/empty, perfil correto, fonte/foco/Escape, comparação, autenticação/CSRF, pedido persistido privado, rascunho inválido bloqueado e rejeição; desktop/mobile390/reduced-motion. **7/7 passaram em 16,0s**, incluindo seleção por cargo, menu lateral por Escape/toque, animação e navegação móvel, sem variável de origem pública para exercitar o padrão. Axe: zero violações WCAG A/AA nas telas testadas, inclusive com menu aberto, sem alegação de certificação. Medição local Chromium1280×720 sem throttling:TTFB116ms,DOMContentLoaded277ms,load352ms,9 solicitações JS/163371bytes; CSS principal60669bytes brutos/13445gzip; não é Lighthouse nem previsão de rede móvel. Evidências: `test-results/home-desktop.png`, `test-results/home-mobile.png`, `playwright-report/index.html` (geradas e ignoradas no Git).
 
 ## Bugs encontrados e corrigidos
 

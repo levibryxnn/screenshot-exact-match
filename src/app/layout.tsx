@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { Header } from '@/components/Header';
+import 'open-props/easings.min.css';
 import './globals.css';
 export const metadata: Metadata = { title: { default: 'PLENÁRIO — Informação pública, escolha sua', template: '%s · PLENÁRIO' }, description: 'Explore trajetórias políticas a partir de fontes oficiais. Sem rankings de honestidade, com proveniência e limites visíveis.' };
 export const dynamic = 'force-dynamic';

@@ -30,6 +30,7 @@ Dados retidos em disco sobrevivem a reinícios; processos precisam ser iniciados
 ## O que está implementado
 
 - Seleção de perfis com tema editorial marinho e dourado, hero com ilustração arquitetônica original, busca tolerante a acentos, filtros reais por cargo/partido/UF/situação e paginação.
+- Menu lateral responsivo com foco acessível, fechamento por Escape, animação reduzível e navegação por toque; utiliza Radix Dialog e tokens CSS do Open Props (MIT).
 - Perfis navegáveis, histórico parlamentar, até cinco proposições por deputado e citações junto dos registros.
 - Comparação factual de até quatro pessoas, com contexto e lacunas visíveis.
 - Importador real com domínio restrito, timeout, repetição controlada, validação e persistência transacional.
@@ -93,4 +94,4 @@ Rate limiting local atende uma instância e não substitui limite no proxy/Redis
 - [Análise do HTML do Gemini](docs/GEMINI-REVIEW.md)
 - [Estado, testes e próximo incremento](docs/STATUS.md)
 
-Nenhum código de CandData ou dos projetos de transparência pesquisados foi copiado. Dependências mantêm suas próprias licenças: Next/React/Radix/Zod MIT, Lucide ISC e alguns ícones herdados MIT; ferramentas de teste possuem licenças próprias. A licença de dados/fotografias deve ser verificada separadamente da licença de software.
+Nenhum código de CandData ou dos projetos de transparência pesquisados foi copiado. Dependências mantêm suas próprias licenças: Next/React/Radix/Zod/Open Props MIT, Lucide ISC e alguns ícones herdados MIT; ferramentas de teste possuem licenças próprias. A licença de dados/fotografias deve ser verificada separadamente da licença de software.
