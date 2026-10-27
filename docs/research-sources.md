@@ -1,4 +1,4 @@
-# Pesquisa de fontes oficiais — 26/10/2026
+# Pesquisa de fontes oficiais — 27/10/2026
 
 ## Escopo e evidência
 
@@ -21,11 +21,17 @@ Campos da lista: `id`, `uri`, `nome`, `siglaPartido`, `uriPartido`, `siglaUf`, `
 
 `ultimoStatus` é o último status conhecido, **não uma prova automática de mandato atual**. Histórico de votação nominal não equivale a presença geral. Vínculo de autoria de proposição não equivale a aprovação ou implementação. A consulta de proposições é limitada na primeira entrega e sua contagem não é indicador de produtividade. Para detalhar tramitação, autoria conjunta, votação e despesas, consultar endpoints próprios e manter período/contexto.
 
-A amostra da API usa os primeiros 24 nomes em ordem alfabética segundo a fonte, sem seleção por partido ou ideologia. É uma regra reprodutível de cobertura inicial, não uma amostra estatisticamente representativa do país. Paginação, timeouts, tentativas limitadas e publicação transacional evitam substituir o cache por uma importação parcial.
+A coleta atual consulta a lista completa disponível de deputados, com paginação de até 100 itens por requisição e limite operacional de 513 registros. O critério é o ordenamento da própria API, sem seleção por partido ou ideologia; isso não cobre assembleias estaduais ou câmaras municipais. Paginação, timeouts, tentativas limitadas e publicação transacional evitam substituir o cache por uma importação parcial.
 
 ### Fonte histórica oficial de contingência
 
 Foi confirmado o checkout oficial `camaradosdeputados/dados-abertos`, commit `66a902e32b02b1ef43e273dac73384998e9c1c9f`. O arquivo `dados-extras/votacoes/fontes/PlenVotos-L55.csv` contém IDs oficiais, nomes, partido, UF e data de registros de votação da 55ª legislatura. O fallback documentado em [SNAPSHOT.md](SNAPSHOT.md) preserva SHA-256, linhas e critério de seleção. Os registros de 03/02/2015 são rotulados **históricos**, sem inferir cargos ou partidos atuais. A documentação oficial observa limitações no vínculo de IDs históricos; essa limitação acompanha a proveniência. Não há cópia de lógica de software desse repositório.
+
+### Senado Federal — integração corrente
+
+O serviço oficial `https://legis.senado.leg.br/dadosabertos/senador/lista/atual.json` respondeu **200 JSON** e informou 81 parlamentares em exercício na coleta de 27/10/2026. Cada registro fornece `CodigoParlamentar`, nomes, partido, UF, mandato, legislatura, data de início do exercício, página oficial e URL de retrato. O conector usa `CodigoParlamentar` como ID interno `senado:<id>`, preserva a lista em `data/senado-snapshot.json` e não cruza identidade com a Câmara por nome.
+
+O serviço está integrado à inicialização do banco e à busca pública. A primeira versão não importa proposições, votações, afastamentos detalhados ou histórico eleitoral do Senado. As URLs de retrato retornadas pelo serviço observado usam HTTP; por isso permanecem nulas no modelo até existir endpoint HTTPS oficial validado. Não são convertidas silenciosamente para HTTPS.
 
 ### Fotografias e direitos
 
@@ -35,8 +41,8 @@ A API fornece URLs oficiais `https://www.camara.leg.br/internet/deputado/bandep/
 
 | Fonte | Endereço e teste | Utilidade e limitação para esta entrega |
 | --- | --- | --- |
-| Senado | https://legis.senado.leg.br/dadosabertos/senador/lista/atual.json — **200 JSON**; https://www12.senado.leg.br/dados-abertos — **200 HTML** | A lista corrente existe e o portal descreve dados administrativos/legislativos abertos. Estrutura própria, não idêntica à Câmara; é necessária identidade oficial do Senado e reconciliação documentada. Não integrado ao importador MVP. Não foi necessário token para esta consulta específica. |
-| TSE | https://dadosabertos.tse.jus.br/ — **200 HTML** | Catálogo acessível. Candidaturas, resultados, bens e prestações de contas devem ser importados por eleição e conjunto efetivamente disponível. Nenhum arquivo eleitoral foi baixado ou validado nesta rodada; cobertura, licença específica, schema e limites ainda precisam ser conferidos antes da integração. Não é uma API universal de perfis. |
+| Senado | https://legis.senado.leg.br/dadosabertos/senador/lista/atual.json — **200 JSON**; https://www12.senado.leg.br/dados-abertos — **200 HTML** | **Integrado.** Lista corrente de parlamentares em exercício; IDs, partido, UF, mandato e legislatura. Proposições, votações e histórico detalhado ainda são incrementos separados. |
+| TSE | https://dadosabertos.tse.jus.br/api/3/action/package_search — **200 JSON/CKAN**; pacotes `candidatos-2024`, `resultados-2024`, `prestacao-de-contas-eleitorais-2024`, `candidatos-2026` | **Catálogo confirmado, ainda não integrado.** `candidatos-2024` publica CSVs de candidaturas, bens, vagas, cassação, redes sociais, fotos e propostas de governo; `resultados-2024` publica votação nominal e relatórios de totalização. O TSE é essencial para histórico eleitoral, candidaturas e resultados, mas não é autoridade única para afirmar quem exerce um mandato hoje. A integração deve manter ano, eleição, cargo, município/UF, número de candidatura e situação separados dos registros de exercício das casas legislativas. |
 | CNJ / DataJud | https://www.cnj.jus.br/sistemas/datajud/api-publica/ — **403 HTTP**; https://datajud-wiki.cnj.jus.br/api-publica/ e `/acesso/` — bloqueio 403 do túnel | Documentação não validada neste ambiente. Não houve consulta processual nem extração de chave. Necessário confirmar instruções oficiais de acesso, chave pública vigente, tribunal/índice e escopo permitido. DataJud é fonte de metadados: não fornece por si só o teor de decisão nem permite inferir culpa ou vincular homônimos. Não integrado e não é pré-requisito do recorte legislativo. |
 | Portal da Transparência | https://portaldatransparencia.gov.br/api-de-dados — **200 HTML** | Documentação lida informa cadastro de e-mail para token; limite publicado de 400 requisições/minuto entre 06:00–23:59 e 700 entre 00:00–05:59. Esses valores são observações da página em 26/10/2026, devem ser revalidados. Nenhum token solicitado ou endpoint autenticado executado. Não confundir despesas de campanha/TSE com dados administrativos desta API. |
 | TCU | https://portal.tcu.gov.br/dados-abertos/ — **200 HTML**, redirecionado sem barra | **O conteúdo é página de proteção “Acesso Bloqueado por Segurança”**. Não houve acesso útil ao catálogo ou a decisões. O status 200 não é integração bem-sucedida. Não se deve automatizar contorno de proteção. Um conector futuro precisa de catálogo/rota oficial acessível e documentação validada. |

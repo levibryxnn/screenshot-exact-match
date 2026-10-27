@@ -88,19 +88,19 @@ export function validateEditorialLegalRecord(record: unknown) { return legalReco
 const timelineSchema = z.object({id:z.string().min(1), date, title:z.string().min(1), description:z.string().min(1), source:citationSchema});
 const proposalSchema = z.object({id:z.string().min(1), code:z.string().min(1), title:z.string().min(1), date:date.nullable(), status:z.string().min(1), source:citationSchema});
 export const politicianSchema = z.object({
-  id: z.string().regex(/^camara:\d+$/), officialId: z.number().int().positive(), name: z.string().min(1).max(200),
+  id: z.string().regex(/^(?:camara|senado):\d+$/), officialId: z.number().int().positive(), name: z.string().min(1).max(200),
   fullName:z.string().max(300).nullable(), party:z.string().min(1).max(50), uf:z.string().regex(/^[A-Z]{2}$/),
   role:z.string().min(1).max(100), municipality:z.string().nullable(), status:z.string().min(1), legislature:z.number().int().positive().nullable(),
   photoUrl:httpsUrl.nullable(), referenceDate:date.nullable(), collectedAt:date, coverage:z.enum(['historical','live']),
   education:z.string().nullable(), source:citationSchema, timeline:z.array(timelineSchema), proposals:z.array(proposalSchema), legalRecords:z.array(legalRecordSchema),
 }).superRefine((value, ctx) => {
-  if (value.id !== `camara:${value.officialId}`) ctx.addIssue({code:'custom', message:'Identificador interno deve corresponder ao identificador oficial.'});
+  if (value.id !== `${value.id.split(':')[0]}:${value.officialId}`) ctx.addIssue({code:'custom', message:'Identificador interno deve corresponder ao identificador oficial.'});
   if (value.photoUrl && !isOfficialCamaraPhotoUrl(value.photoUrl, value.officialId)) ctx.addIssue({code:'custom', message:'Foto deve ser o retrato oficial HTTPS correspondente ao ID da Câmara.'});
   if (value.photoUrl && value.coverage === 'historical') ctx.addIssue({code:'custom', message:'Retrato atual não pode ser associado automaticamente a registro histórico.'});
 });
 
 export const correctionSchema = z.object({
-  politicianId:z.string().regex(/^camara:\d+$/), subject:z.string().trim().min(15).max(2000), evidenceUrl:httpsUrl,
+  politicianId:z.string().regex(/^(?:camara|senado):\d+$/), subject:z.string().trim().min(15).max(2000), evidenceUrl:httpsUrl,
 });
 
 export function validatePoliticians(input: unknown) {

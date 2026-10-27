@@ -1,6 +1,6 @@
 # CIVIS — índice público da política brasileira
 
-Aplicação web funcional de transparência política. Interface de seleção, pesquisa, filtros, perfis com proveniência e comparação, apoiados por importação oficial da Câmara e SQLite persistente. Sem notas de honestidade, recomendação de voto ou acusações geradas.
+Aplicação web funcional de transparência política. Interface de seleção, pesquisa, filtros, perfis com proveniência e comparação, apoiados por importações oficiais da Câmara e do Senado e SQLite persistente. Sem notas de honestidade, recomendação de voto ou acusações geradas.
 
 Este `main` agora contém o núcleo completo do CIVIS. A versão anterior baseada no template Lovable foi preservada na branch [`lovable-preview-legacy`](https://github.com/levibryxnn/screenshot-exact-match/tree/lovable-preview-legacy); a migração foi feita em commits normais, sem reescrever o histórico.
 
@@ -34,14 +34,14 @@ Dados retidos em disco sobrevivem a reinícios; processos precisam ser iniciados
 - Pedidos de correção persistidos e privados; área editorial autenticada, rascunhos, aprovação/rejeição de registros jurídicos e auditoria.
 - Alertas de dados antigos, conteúdo indisponível e falha de atualização; teclado, movimento reduzido e layout móvel.
 
-Snapshot coletado da API em **26/10/2026**: **24 deputados, 120 proposições e 265 eventos parlamentares**, selecionados por ordem alfabética. Esses números descrevem o lote, não a totalidade de suas atividades. [Proveniência e limitações](docs/SNAPSHOT.md).
+Snapshots oficiais: **513 deputados** e **81 senadores em exercício**. A Câmara inclui até cinco proposições recentes por deputado; os 81 senadores vêm da lista corrente do Senado. Esses números descrevem os lotes importados, não a totalidade de suas atividades. [Proveniência e limitações](docs/SNAPSHOT.md).
 
 ## Atualizar dados
 
 ```bash
-npm run data:import -- --limit=24
-# Opcional: atualizar também o snapshot versionável, sem contatos ou dados sensíveis
-npm run data:import -- --limit=24 --snapshot
+npm run data:import -- --source=all
+# Opcional: atualizar os snapshots versionáveis, sem contatos ou dados sensíveis
+npm run data:import -- --source=all --snapshot
 ```
 
 Somente a opção explícita `--snapshot` modifica o arquivo de dados distribuído. Importação administrativa altera apenas o banco. Um lote bem-sucedido substitui a seleção ativa, preservando perfis anteriores, versões e vínculos. Falha retorna código diferente de zero e não substitui o lote.
@@ -49,10 +49,10 @@ Somente a opção explícita `--snapshot` modifica o arquivo de dados distribuí
 A estrutura permite execução periódica externa. Exemplo de cron no host de implantação (não instalado automaticamente):
 
 ```cron
-0 */6 * * * cd /caminho/screenshot-exact-match && /caminho/npm run data:import -- --limit=24 >> var/import.log 2>&1
+0 */6 * * * cd /caminho/screenshot-exact-match && /caminho/npm run data:import -- --source=all >> var/import.log 2>&1
 ```
 
-Monitore `import_runs`/painel. Evite execução concorrente; limite inicial de 24 não é cobertura nacional. Destinos: `registry.npmjs.org`, `dadosabertos.camara.leg.br`; GitHub para fontes históricas/pesquisa. Acesso à Câmara não exige chave na versão atual.
+Monitore `import_runs`/painel. Evite execução concorrente; a cobertura atual é federal e ainda não inclui assembleias estaduais ou câmaras municipais. Destinos: `registry.npmjs.org`, `dadosabertos.camara.leg.br` e `legis.senado.leg.br`; GitHub para fontes históricas/pesquisa. As consultas correntes não exigem chave na versão atual.
 
 ## Administração
 
@@ -76,7 +76,7 @@ E2E inicia seu próprio servidor de produção na porta 3100, banco temporário 
 
 ## Limites desta versão
 
-Senado, TSE, DataJud, TCU e Portal da Transparência foram pesquisados, mas **não estão integrados**. Votos nominais, despesas, patrimônio, promessas, histórico eleitoral completo e fotografias com licença de reutilização comprovada ainda não foram integrados; retratos oficiais da Câmara são carregados por URL quando disponíveis, com fallback e sem cópia local. Município não é inferido de UF. Ausência de registro não significa ausência de atuação ou processos.
+TSE, DataJud, TCU e Portal da Transparência foram pesquisados, mas ainda não estão integrados. O Senado já fornece a lista corrente de parlamentares; proposições e votações ainda serão adicionadas. O TSE será usado para histórico eleitoral, candidaturas, resultados, bens e contas, sem substituir a fonte legislativa do mandato atual. Votos nominais, despesas, patrimônio, promessas, histórico eleitoral completo, municípios, assembleias estaduais e câmaras municipais continuam pendentes. Retratos oficiais da Câmara são carregados por URL quando disponíveis, com fallback e sem cópia local. Município não é inferido de UF. Ausência de registro não significa ausência de atuação ou processos.
 
 A fila de correções recebe pedidos e os mostra ao editor; triagem com prazos, notificação ao solicitante e edição granular de fatos cadastrais ainda não existem. O fluxo sensível permite criar, aprovar e retirar registros com justificativa. Não há pesquisa jurídica exaustiva nem equipe jurídica contratada. Antes de lançamento público amplo: revisão jurídica/LGPD proporcional, backups, observabilidade, origem HTTPS, limitação de tráfego no proxy e gestão de múltiplos editores.
 

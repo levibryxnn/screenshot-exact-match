@@ -50,7 +50,7 @@ export function finishImport(id:string, status:'success'|'failed', count:number,
   getDb().prepare('UPDATE import_runs SET completed_at=?,status=?,count=?,message=? WHERE id=?').run(new Date().toISOString(),status,count,message.slice(0,2000),id);
 }
 
-export function savePoliticians(input:unknown, options:{replaceActive?:boolean}={}):number {
+export function savePoliticians(input:unknown, options:{replaceActive?:boolean; activePrefix?:'camara'|'senado'}={}):number {
   const records=validatePoliticians(input);
   const db=getDb();
   const upsert=db.prepare(`INSERT INTO politicians(id,official_id,name,search_name,party,uf,role,status,coverage,collected_at,reference_date,data)
@@ -59,7 +59,10 @@ export function savePoliticians(input:unknown, options:{replaceActive?:boolean}=
     role=excluded.role,status=excluded.status,coverage=excluded.coverage,collected_at=excluded.collected_at,reference_date=excluded.reference_date,active=1,data=excluded.data`);
   db.exec('BEGIN IMMEDIATE');
   try {
-    if(options.replaceActive) db.prepare('UPDATE politicians SET active=0').run();
+    if(options.replaceActive) {
+      if (options.activePrefix) db.prepare('UPDATE politicians SET active=0 WHERE id LIKE ?').run(`${options.activePrefix}:%`);
+      else db.prepare('UPDATE politicians SET active=0').run();
+    }
     for(const record of records) {
       const data=JSON.stringify(record);
       upsert.run(record.id,record.officialId,record.name,normalize(record.name),record.party,record.uf,record.role,record.status,record.coverage,record.collectedAt,record.referenceDate,data);
@@ -74,16 +77,21 @@ export function initDatabase() {
   const db=getDb();
   if(process.env.CIVIS_SKIP_SNAPSHOT === '1') return;
   if((db.prepare('SELECT count(*) AS count FROM politicians').get() as {count:number}).count) return;
-  const snapshotPath=resolve(process.cwd(),'data/official-snapshot.json');
-  if(!existsSync(snapshotPath)) return;
-  const snapshot=JSON.parse(readFileSync(snapshotPath,'utf8')) as {politicians:unknown};
-  const run=beginImport('Câmara dos Deputados — snapshot oficial versionado');
-  try {
-    const count=savePoliticians(snapshot.politicians);
-    finishImport(run,'success',count,'Snapshot oficial importado. Datas de referência preservadas; a coleta não implica atualização contínua.');
-  } catch(error) {
-    finishImport(run,'failed',0,error instanceof Error ? error.message : 'Snapshot inválido.');
-    throw error;
+  const snapshots=[
+    {path:resolve(process.cwd(),'data/official-snapshot.json'),source:'Câmara dos Deputados — snapshot oficial versionado',message:'Snapshot da Câmara importado. Datas de referência preservadas; a coleta não implica atualização contínua.'},
+    {path:resolve(process.cwd(),'data/senado-snapshot.json'),source:'Senado Federal — snapshot oficial versionado',message:'Snapshot do Senado importado. A lista corrente não substitui histórico eleitoral completo.'},
+  ];
+  for(const entry of snapshots){
+    if(!existsSync(/* turbopackIgnore: true */ entry.path)) continue;
+    const snapshot=JSON.parse(readFileSync(/* turbopackIgnore: true */ entry.path,'utf8')) as {politicians:unknown};
+    const run=beginImport(entry.source);
+    try {
+      const count=savePoliticians(snapshot.politicians);
+      finishImport(run,'success',count,entry.message);
+    } catch(error) {
+      finishImport(run,'failed',0,error instanceof Error ? error.message : 'Snapshot inválido.');
+      throw error;
+    }
   }
 }
 
@@ -99,6 +107,22 @@ export function listPoliticians(filters:PoliticianFilters={}) {
   const total=(getDb().prepare(`SELECT count(*) AS count FROM politicians ${where}`).get(...args) as {count:number}).count;
   const rows=getDb().prepare(`SELECT data FROM politicians ${where} ORDER BY search_name ASC,id ASC LIMIT ? OFFSET ?`).all(...args,pageSize,(page-1)*pageSize) as unknown as {data:string}[];
   return {items:rows.map(row=>JSON.parse(row.data) as Politician),total,page,pageSize};
+}
+export function listAllPoliticians() {
+  const first = listPoliticians({ page: 1, pageSize: 100 });
+  const items = [...first.items];
+  for (let page = 2; items.length < first.total; page++) items.push(...listPoliticians({ page, pageSize: 100 }).items);
+  return items;
+}
+/** Small public-card payload; detail records remain available on the profile route. */
+export function listAllPoliticianSummaries() {
+  return listAllPoliticians().map(record => ({
+    ...record,
+    education: null,
+    timeline: [],
+    proposals: [],
+    legalRecords: [],
+  } satisfies Politician));
 }
 export function getPolitician(id:string):Politician|null {
   initDatabase();

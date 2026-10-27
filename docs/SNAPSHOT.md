@@ -2,7 +2,7 @@
 
 ## Snapshot principal: API da Câmara
 
-`data/official-snapshot.json` contém a importação real e sanitizada da API da Câmara dos Deputados. O importador coleta os primeiros 24 nomes em ordem alfabética, identificação parlamentar, histórico cadastral, retrato oficial retornado no cadastro e até cinco proposições por autor. A data de referência/coleta consta de cada registro; a fonte é o endpoint oficial correspondente, sem atribuir data de publicação desconhecida. A seleção não é uma amostra estatisticamente representativa e não utiliza preferência partidária.
+`data/official-snapshot.json` contém a importação real e sanitizada da API da Câmara dos Deputados. O importador consulta a lista corrente completa disponível (até 513 deputados), identificação parlamentar, histórico cadastral, retrato oficial retornado no cadastro e até cinco proposições por autor. A data de referência/coleta consta de cada registro; a fonte é o endpoint oficial correspondente, sem atribuir data de publicação desconhecida. A seleção não utiliza preferência partidária.
 
 Foi executada a coleta externa real neste ambiente, além dos testes determinísticos de falha e formato. Campos nulos de situação em eventos cadastrais e ementas vazias encontrados na API são tratados explicitamente; não são preenchidos com narrativas inventadas. Nenhuma informação judicial ou acusação é importada automaticamente. Os retratos são mantidos como URLs HTTPS oficiais da Câmara, vinculadas ao ID oficial e exibidas com fallback; não são baixados nem redistribuídos pelo repositório. CPF, e-mail e contatos presentes eventualmente na resposta não são retidos no snapshot.
 
@@ -11,7 +11,8 @@ O hash `sha256NormalizedRecords` identifica a representação sanitizada dos reg
 Para atualizar explicitamente o snapshot versionado durante manutenção:
 
 ```bash
-npm run data:import -- --limit=24 --snapshot
+npm run data:import -- --source=camara --limit=513 --snapshot
+npm run data:import -- --source=senado --snapshot
 ```
 
 Sem `--snapshot`, o importador atualiza somente o banco; a ação administrativa também não escreve arquivos rastreados do repositório. Um snapshot é uma fotografia da consulta na data registrada, não uma promessa de atualização contínua.
@@ -48,6 +49,12 @@ O extrator lê os bytes do commit com `git show`, exige o SHA do commit selecion
 
 ## Atualização pela API
 
-`npm run data:import -- --limit=24` busca a lista de deputados ordenada por nome, detalhes, histórico parlamentar e até cinco proposições por parlamentar. Não importa acusações, imagens ou informações pessoais de contato. A fonte deve estar acessível na rede. Timeouts, respostas inválidas e falhas HTTP são registrados; uma importação incompleta não substitui o cache anterior. A página de administração exibe o resultado real, sem presumir conexão ativa.
+`npm run data:import -- --source=all --snapshot` busca a lista corrente de deputados, os parlamentares em exercício do Senado, detalhes, históricos parlamentares e até cinco proposições por deputado. Não importa acusações, imagens ou informações pessoais de contato. A fonte deve estar acessível na rede. Timeouts, respostas inválidas e falhas HTTP são registrados; uma importação incompleta não substitui o cache anterior. Cada Casa desativa somente o lote anterior da própria fonte, preservando a outra Casa.
+
+## Snapshot corrente: Senado Federal
+
+`data/senado-snapshot.json` contém os parlamentares retornados por `https://legis.senado.leg.br/dadosabertos/senador/lista/atual.json`. O identificador oficial é preservado como `senado:<CodigoParlamentar>`, com nome, nome completo quando disponível, partido, UF, legislatura, início do mandato e data da coleta. A lista é uma fotografia da situação corrente; não substitui histórico eleitoral, proposições, votações ou atos de suplência.
+
+O serviço observado fornece URLs de retrato em HTTP. Elas permanecem nulas até existir endpoint HTTPS oficial validado; a aplicação não converte HTTP para HTTPS por conta própria. O fallback tipográfico deixa essa ausência explícita. O snapshot é inicializado junto com o da Câmara quando o banco está vazio, e uma atualização do Senado não desativa deputados.
 
 A execução de integração externa deve ser distinguida dos testes determinísticos com respostas simuladas. Os testes usam pessoas fictícias explicitamente identificadas, banco temporário e respostas locais controladas. A amostra pública é exclusivamente documental.

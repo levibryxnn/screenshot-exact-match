@@ -5,10 +5,13 @@ import '@/lib/camara'; // Configure the platform HTTPS proxy used for the offici
 
 export async function GET(_request: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  if (!/^\d+$/.test(id)) return NextResponse.json({ error: 'Identificador inválido.' }, { status: 400 });
+  let decodedId: string;
+  try { decodedId = decodeURIComponent(id); } catch { return NextResponse.json({ error: 'Identificador inválido.' }, { status: 400 }); }
+  const politicianId = /^\d+$/.test(decodedId) ? `camara:${decodedId}` : decodedId;
+  if (!/^(?:camara|senado):\d+$/.test(politicianId)) return NextResponse.json({ error: 'Identificador inválido.' }, { status: 400 });
 
-  const politician = getPolitician(`camara:${id}`);
-  if (!politician?.photoUrl || !isOfficialCamaraPhotoUrl(politician.photoUrl, Number(id))) {
+  const politician = getPolitician(politicianId);
+  if (!politician?.photoUrl || !politicianId.startsWith('camara:') || !isOfficialCamaraPhotoUrl(politician.photoUrl, politician.officialId)) {
     return NextResponse.json({ error: 'Retrato oficial não disponível.' }, { status: 404 });
   }
 

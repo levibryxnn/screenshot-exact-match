@@ -5,9 +5,10 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { z } from 'zod';
 import type { Politician, LegalRecord, Citation } from '../src/lib/types';
-import { closeDatabase, savePoliticians, listPoliticians, getPolitician, getDb, submitCorrection, listCorrections, getImportRuns, getDataStatus } from '../src/lib/db';
+import { closeDatabase, savePoliticians, listPoliticians, listAllPoliticians, listAllPoliticianSummaries, getPolitician, getDb, submitCorrection, listCorrections, getImportRuns, getDataStatus } from '../src/lib/db';
 import { validatePoliticians, legalRecordSchema, legalStatuses, citationSchema } from '../src/lib/validation';
 import { assertCamaraUrl, fetchCamaraJson, importCamara, collectCamara } from '../src/lib/camara';
+import { assertSenadoUrl, fetchSenadoJson, parseSenadoRecords } from '../src/lib/senado';
 
 // All entities created in this file are explicitly fictitious test fixtures.
 const now=new Date().toISOString();
@@ -82,6 +83,14 @@ test('pedidos de correção persistem e exigem vínculo, texto e HTTPS',()=>{
 test('conector rejeita destinos externos, credenciais e caminhos fora da API',()=>{
   for(const url of ['http://dadosabertos.camara.leg.br/api/v2/deputados','https://127.0.0.1/api/v2/deputados','https://dadosabertos.camara.leg.br.evil.example/api/v2/deputados','https://dadosabertos.camara.leg.br:8443/api/v2/deputados','https://dadosabertos.camara.leg.br/private']) assert.throws(()=>assertCamaraUrl(url));
 });
+test('conector do Senado normaliza parlamentares em exercício sem cruzar nomes',async()=>{
+  assert.throws(()=>assertSenadoUrl('http://legis.senado.leg.br/dadosabertos/senador/lista/atual.json'));
+  assert.throws(()=>assertSenadoUrl('https://legis.senado.leg.br/dadosabertos/senador/lista/outro.json'));
+  const payload={ListaParlamentarEmExercicio:{Parlamentares:{Parlamentar:[{IdentificacaoParlamentar:{CodigoParlamentar:'5672',NomeParlamentar:'Senador Teste',NomeCompletoParlamentar:'Senador Teste Completo',SiglaPartidoParlamentar:'TESTE',UfParlamentar:'AC',UrlFotoParlamentar:'http://www.senado.leg.br/senadores/img/fotos-oficiais/senador5672.jpg'},Mandato:{PrimeiraLegislaturaDoMandato:{NumeroLegislatura:'57',DataInicio:'2023-02-01'}}}]}}};
+  const records=parseSenadoRecords(payload);
+  assert.equal(records[0].id,'senado:5672');assert.equal(records[0].role,'Senador(a)');assert.equal(records[0].photoUrl,null);assert.equal(records[0].timeline[0].date,'2023-02-01');
+  let attempts=0;const response=await fetchSenadoJson(undefined,{fetcher:async()=>{attempts++;return Response.json(payload)},retries:0});assert.ok(response);assert.equal(attempts,1);
+});
 test('conector repete falha transitória, respeita erro permanente e proíbe redirects',async()=>{
   let attempts=0;
   const fetcher:typeof fetch=async(_input,init)=>{assert.equal(init?.redirect,'error');attempts++;return attempts===1 ? new Response('',{status:503}):Response.json({dados:[{id:1}],links:[]});};
@@ -129,4 +138,16 @@ test('snapshot distribuído contém registros documentados válidos, quando pres
   const records=validatePoliticians(snapshot.politicians);
   assert.ok(records.length>=2);assert.ok(records.every(record=>record.source.verification==='official-import'));
   assert.ok(records.every(record=>record.legalRecords.length===0),'Não importar acusações automaticamente.');
+  const senatePath=join(process.cwd(),'data/senado-snapshot.json');
+  assert.ok(existsSync(senatePath),'Snapshot corrente do Senado necessário para a cobertura federal.');
+  const senate=JSON.parse(readFileSync(senatePath,'utf8'));
+  const senateRecords=validatePoliticians(senate.politicians);
+  assert.equal(senateRecords.length,81);assert.ok(senateRecords.every(record=>record.id.startsWith('senado:')));
+});
+test('listagem completa percorre todas as páginas para a seleção pública',()=>{
+  savePoliticians(Array.from({length:105},(_,i)=>fixture(100000+i,`Pessoa fictícia ${String(i).padStart(3,'0')}`)),{replaceActive:true});
+  assert.equal(listAllPoliticians().length,105);
+  const summaries=listAllPoliticianSummaries();
+  assert.equal(summaries.length,105);
+  assert.ok(summaries.every(record=>record.timeline.length===0 && record.proposals.length===0 && record.legalRecords.length===0));
 });

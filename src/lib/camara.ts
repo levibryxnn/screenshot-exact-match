@@ -51,11 +51,11 @@ function citation(id:string,title:string,url:string,collectedAt:string,eventDate
 }
 
 export async function collectCamara(limit=24, options:CamaraFetchOptions={}):Promise<Politician[]> {
-  if(!Number.isInteger(limit)||limit<1||limit>100) throw new Error('Limite deve ser um inteiro entre 1 e 100.');
+  if(!Number.isInteger(limit)||limit<1||limit>600) throw new Error('Limite deve ser um inteiro entre 1 e 600.');
   const collectedAt=new Date().toISOString();
   const deputies:z.infer<typeof deputySchema>[]=[];
   let page=1;
-  while(deputies.length<limit && page<=10) {
+  while(deputies.length<limit && page<=Math.ceil(limit / 100) + 1) {
     const url=`${API}/deputados?ordem=ASC&ordenarPor=nome&itens=${Math.min(100,limit)}&pagina=${page}`;
     const response=await fetchCamaraJson(url,options);
     const items=z.array(deputySchema).parse(response.dados);
@@ -103,7 +103,7 @@ export async function importCamara(limit=24, options:CamaraFetchOptions={}) {
   const runId=beginImport(`${API}/deputados — primeiros ${limit} nomes em ordem alfabética`);
   try {
     const records=await collectCamara(limit,options);
-    const count=savePoliticians(records,{replaceActive:true});
+    const count=savePoliticians(records,{replaceActive:true,activePrefix:'camara'});
     finishImport(runId,'success',count,'Identificação, retratos oficiais quando fornecidos, histórico parlamentar e até 5 proposições por deputado importados. Não é cobertura de todo o eleitorado nem de toda a produção legislativa.');
     return {runId,count};
   } catch(error) {
